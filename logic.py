@@ -1,8 +1,10 @@
 import json
 from generators import *
 
+
 class Environment:
     default_generators = Generator.get_generators()
+    default_profile = None  # из этой штуки можно будет всегда восстановить шаблоны по умолчанию
 
     def __init__(self):
         pass
