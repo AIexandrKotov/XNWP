@@ -16,7 +16,7 @@ class Generator:
         }
 
     def next(self, **kwargs):
-        pass
+        return None
 
 
 class RussianNameGenerator(Generator):
@@ -26,32 +26,29 @@ class RussianNameGenerator(Generator):
 
 
 class DigitGenerator(Generator):
-    def next(self, **kwargs):
-        self.Rnd.randint(kwargs["lower"], kwargs["upper"])
+    def next(self, lower: int, upper: int):
+        return self.Rnd.randint(lower, upper)
 
 
 class RandomChooseGenerator(Generator):
-    def next(self, **kwargs):
-        if "chooses" in kwargs:
-            return kwargs["chooses"][self.Rnd.randint(0, len(kwargs["chooses"]))]
-        return "Chooses not specified"
+    def next(self, chooses: list):
+        return chooses[self.Rnd.randint(0, len(chooses))]
 
 
 class ChanceChooseGenerator(Generator):
     @staticmethod
-    def optimize(cacheditems):
-        overall = sum(map(lambda x: x[1], cacheditems))
-        return list(map(lambda x: (x[0], x[1] / overall), cacheditems))
+    def optimize(cached_items):
+        overall = sum(i for i, j in cached_items)
+        return [(i / overall, j) for i, j in cached_items]
 
-    def next(self, **kwargs):
+    def next(self, chance_chooses: list[tuple[float, object]]):
         f = self.Rnd.random()
-        curl = 0.0
-        curr = 0.0
-        items = self.optimize(kwargs["chancechooses"])
-        if len(items) == 0: return "ChanceChooses not specified"
-        for x in items:
-            curr += x[1]
-            if curl <= f <= curr:
-                return x[0]
-            curr += x[1]
-        return items[len(items)-1]
+        items = self.optimize(chance_chooses)
+        if len(items) == 0:
+            return "ChanceChooses not specified"
+        sum = 0.0
+        for chance, o in items:
+            sum += chance
+            if sum >= f:
+                return o
+        return items[len(items) - 1][1]

@@ -2,27 +2,21 @@ import json
 from generators import *
 
 
-class Environment:
-    default_generators = Generator.get_generators()
-    default_profile = None  # из этой штуки можно будет всегда восстановить шаблоны по умолчанию
-
-    def __init__(self):
-        pass
-
-
 class Profile:
     def __init__(self):
-        self.persons = []
-        self.notes = []
-        self.sample_properties = []
-        self.sample_persons = []
+        self.persons: list[Person] = []
+        self.notes: list[Note] = []
+        self.sample_properties: list[Property] = []
+        self.sample_persons: list[Person] = []
 
     def encode(self):
-        return {"persons": list(map(Person.encode, self.persons)),
-                "notes": list(map(Person.encode, self.notes)),
-                "sample_properties": list(map(Property.encode, self.sample_properties)),
-                "sample_persons": list(map(Person.encode, self.sample_persons)),
-                "__profile__": True}
+        return {
+            "persons": list(map(Person.encode, self.persons)),
+            "notes": list(map(Note.encode, self.notes)),
+            "sample_properties": list(map(Property.encode, self.sample_properties)),
+            "sample_persons": list(map(Person.encode, self.sample_persons)),
+            "__profile__": True,
+        }
 
     @staticmethod
     def decode(dct):
@@ -30,15 +24,17 @@ class Profile:
             e = Profile()
             e.persons = list(map(Person.decode, dct["persons"]))
             e.notes = list(map(Note.decode, dct["notes"]))
+            e.sample_properties = list(map(Property.decode, dct["sample_properties"]))
+            e.sample_persons = list(map(Person.decode, dct["sample_persons"]))
             return e
         return dct
 
     def save(self):
-        return json.dumps(self, default=Profile.encode)
+        return json.dumps(self, default=Profile.encode, sort_keys=True, indent=4)
 
     def savefile(self, path):
-        with open(path, 'w') as wf:
-            json.dump(self, wf, default=Profile.encode)
+        with open(path, "w") as wf:
+            json.dump(self, wf, default=Profile.encode, sort_keys=True, indent=4)
 
     @staticmethod
     def load(s):
@@ -46,20 +42,25 @@ class Profile:
 
     @staticmethod
     def loadfile(path):
-        with open(path, 'r') as rf:
+        with open(path, "r") as rf:
             data = json.load(rf, object_hook=Profile.decode)
         return data
 
 
+class Environment:
+    default_generators: dict[str, Generator] = Generator.get_generators()
+    default_profile: Profile = (
+        None  # из этой штуки можно будет всегда восстановить шаблоны по умолчанию
+    )
+
+
 class Note:
     def __init__(self):
-        self.text = ""
-        self.tags = []
+        self.text: str = ""
+        self.tags: list[str] = []
 
     def encode(self):
-        return {"text": self.text,
-                "tags": self.tags,
-                "__note__": True}
+        return {"text": self.text, "tags": self.tags, "__note__": True}
 
     @staticmethod
     def decode(dct):
@@ -73,8 +74,8 @@ class Note:
 
 class Person:
     def __init__(self):
-        self.properties = []
-        self.tags = []
+        self.properties: list[Property] = []
+        self.tags: list[str] = []
         pass
 
     def add_property(self, p):
@@ -85,15 +86,12 @@ class Person:
         self.tags.append(tag)
         return self
 
-    def clone(self):
-        p = Person()
-        p.properties = self.properties.copy()
-        p.tags = self.tags.copy()
-
     def encode(self):
-        return {"properties": list(map(Property.encode, self.properties)),
-                "tags": self.tags,
-                "__person__": True}
+        return {
+            "properties": list(map(Property.encode, self.properties)),
+            "tags": self.tags,
+            "__person__": True,
+        }
 
     @staticmethod
     def decode(dct):
@@ -109,33 +107,32 @@ class Person:
 
 class Property:
     def __init__(self):
-        self.name = ""
-        self.value = 0
-        self.generator = ""
-        self.genargs = {}
-        self.flags = []
+        self.name: str = ""
+        self.value: object = 0
+        self.generator: str = ""
+        self.genargs: dict = {}
 
-    def clone(self):
-        p = Property()
-        p.name = self.name
-        p.value = self.value
-        p.generator = self.generator
-        p.genargs = self.genargs.copy()
-        p.flags = self.flags.copy()
+    def __str__(self):
+        return f'{self.name}, {self.value}, {self.generator}, {", ".join(f"{k} = {v}" for k, v in self.genargs.items())}'
 
     def has_generator(self):
         return self.generator != ""
 
-    def generate(self):
-        return Environment.default_generators[self.generator].next(self.genargs)
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self.value = Environment.default_generators[self.generator].next(**self.genargs)
+        return self.value
 
     def encode(self):
-        return {"name": self.name,
-                "value": self.value,
-                "genargs": self.genargs,
-                "generator": self.generator,
-                "flags": self.flags,
-                "__property__": True}
+        return {
+            "name": self.name,
+            "value": self.value,
+            "genargs": self.genargs,
+            "generator": self.generator,
+            "__property__": True,
+        }
 
     @staticmethod
     def decode(dct):
@@ -145,7 +142,6 @@ class Property:
             p.value = dct["value"]
             p.genargs = dct["genargs"]
             p.generator = dct["generator"]
-            p.flags = dct["flags"]
             return p
         return dct
 
