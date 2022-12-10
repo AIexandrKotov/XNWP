@@ -3,6 +3,7 @@ import typing
 from logic import *
 import copy
 
+e = Environment()
 profile = Profile()
 
 note1 = Note()
@@ -25,7 +26,7 @@ prop_age = Property()
 prop_age.name = "Возраст"
 prop_age.generator = "Digit"
 prop_age.genargs = {"lower": 10, "upper": 99}
-next(prop_age)
+prop_age.generate(e)
 
 prop_status = Property()
 prop_status.name = "Статус в обществе"
@@ -33,7 +34,7 @@ prop_status.generator = "ChanceChoose"
 prop_status.genargs = {
     "chance_chooses": [(0.1, "Нищий"), (0.2, "Средний класс"), (0.1, "Программист-работяга")]
 } # dict[str, list[tuple[float, str]]]
-next(prop_status)
+prop_status.generate(e)
 
 print(prop_status)
 
@@ -49,17 +50,17 @@ profile.sample_persons.append(person1)
 
 Alex: Person = copy.deepcopy(profile.sample_persons[0])
 Alex.properties[0].value = "Саня"
-next(Alex.properties[1])
+Alex.properties[1].generate(e)
 
 Kate: Person = copy.deepcopy(profile.sample_persons[0])
 Kate.properties[0].value = "Катя"
-next(Kate.properties[1])
+Kate.properties[1].generate(e)
 
 profile.persons.append(Alex)
 profile.persons.append(Kate)
 
 s = profile.save()
-profile.savefile("test.json")
+profile.savefile("bin/default.json")
 # print(s)
 # e = Profile.load(s)
 # print(e.save())

@@ -1,4 +1,5 @@
 import json
+import copy
 from generators import *
 
 
@@ -46,12 +47,6 @@ class Profile:
             data = json.load(rf, object_hook=Profile.decode)
         return data
 
-
-class Environment:
-    default_generators: dict[str, Generator] = Generator.get_generators()
-    default_profile: Profile = (
-        None  # из этой штуки можно будет всегда восстановить шаблоны по умолчанию
-    )
 
 
 class Note:
@@ -104,6 +99,24 @@ class Person:
 
     pass
 
+from typing import Optional
+
+
+class Environment:
+    # Пока использовать только default_profile
+    def __init__(self):
+        self.default_generators: dict[str, Generator] = Generator.get_generators()
+        self.default_profile : Profile = Profile.loadfile("bin\\default.json")
+        self.current_profile: Optional[Profile] = None
+
+    def load(self):
+        self.current_profile: Profile = copy.deepcopy(self.default_profile)
+        return self
+
+    def save(self):
+        self.current_profile.savefile("bin\\default.json")
+        return self
+
 
 class Property:
     def __init__(self):
@@ -118,11 +131,8 @@ class Property:
     def has_generator(self):
         return self.generator != ""
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        self.value = Environment.default_generators[self.generator].next(**self.genargs)
+    def generate(self, e: Environment):
+        self.value = e.default_generators[self.generator].next(**self.genargs)
         return self.value
 
     def encode(self):
