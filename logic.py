@@ -1,3 +1,4 @@
+import os
 import json
 import copy
 from generators import *
@@ -106,7 +107,7 @@ class Environment:
     # Пока использовать только default_profile
     def __init__(self):
         self.default_generators: dict[str, Generator] = Generator.get_generators()
-        self.default_profile : Profile = Profile.loadfile("bin\\default.json")
+        self.default_profile : Profile = Profile.loadfile(os.path.join("bin", "default.json"))
         self.current_profile: Optional[Profile] = None
 
     def load(self):
@@ -114,7 +115,7 @@ class Environment:
         return self
 
     def save(self):
-        self.current_profile.savefile("bin\\default.json")
+        self.current_profile.savefile(os.path.join("bin", "default.json"))
         return self
 
 
