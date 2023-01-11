@@ -16,8 +16,15 @@ from kivymd.uix.button import *
 from kivymd.uix.stacklayout import MDStackLayout
 from kivy.core.window import Window
 from properties import *
+from persons import *
 from notes import NotesList
 from logic import *
+
+class PersonsScreenTopBar(MDTopAppBar):
+    def __init__(self, screen_manager, environment: Environment, **kwargs):
+        super().__init__(**kwargs)
+        self.screen_manager = screen_manager
+        self.environment: Environment = environment
 
 
 class PersonsTab(MDBottomNavigationItem):
@@ -28,6 +35,12 @@ class PersonsTab(MDBottomNavigationItem):
         self.name = "Persons"
         self.text = "Персонажи"
         self.icon = "account"
+
+        box = MDBoxLayout()
+        box.orientation = "vertical"
+        box.add_widget(PersonsScreenTopBar(screen_manager, environment, title="Персонажи"))
+        box.add_widget(PersonList(screen_manager, environment, "mainscreen", self.environment.current_profile.persons, title="Персонаж"))
+        self.add_widget(box)
 
 
 class MiscTab(MDBottomNavigationItem):
@@ -40,19 +53,19 @@ class MiscTab(MDBottomNavigationItem):
         self.icon = "animation"
         sl = MDBoxLayout()
         sl.orientation = "vertical"
-
-        def start_props(_self):
-            p = PropertyEditor(self.screen_manager, self.environment, "mainscreen", Property())
-            self.screen_manager.add_widget(p)
-            self.screen_manager.current = p.name
         
         def start_proplist(_self):
-            ps = PropertiesScreen(self.screen_manager, self.environment)
+            ps = PropertiesScreen(self.screen_manager, self.environment, "mainscreen", self.environment.current_profile.sample_properties, "Шаблоны свойств")
             self.screen_manager.add_widget(ps)
             self.screen_manager.current = ps.name
         
-        sl.add_widget(MDRectangleFlatButton(text="Тест свойств", on_release=start_props))
-        sl.add_widget(MDRectangleFlatButton(text="Тест списка свойств", on_release=start_proplist))
+        def start_perslist(_self):
+            ps = PersonsScreen(self.screen_manager, self.environment)
+            self.screen_manager.add_widget(ps)
+            self.screen_manager.current = ps.name
+        
+        sl.add_widget(MDRectangleFlatButton(size_hint=[1.0, 0], text="Шаблонные свойства", on_release=start_proplist))
+        sl.add_widget(MDRectangleFlatButton(size_hint=[1.0, 0], text="Шаблоны персонажей", on_release=start_perslist))
         self.add_widget(sl)
 
 

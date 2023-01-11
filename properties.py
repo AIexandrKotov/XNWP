@@ -3,9 +3,11 @@ from kivymd.uix.toolbar import MDTopAppBar, MDBottomAppBar
 from kivymd.uix.textfield import MDTextField, MDTextFieldRect
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.list import TwoLineListItem, MDList, BaseListItem, ILeftBodyTouch, IRightBodyTouch
+from kivymd.uix.list import TwoLineListItem, MDList, BaseListItem, ILeftBodyTouch, IRightBodyTouch, OneLineAvatarIconListItem
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.anchorlayout import MDAnchorLayout
+from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.screen import MDScreen
@@ -14,12 +16,12 @@ from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
 from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.stacklayout import MDStackLayout
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDFlatButton, MDRectangleFlatButton
 from kivy.core.window import Window
 from notes import NotesList
 from logic import *
 
-class PropertyItem(BaseListItem, ILeftBodyTouch):
+class PropertyItem(OneLineAvatarIconListItem, ILeftBodyTouch):
     def __init__(self, screen_manager, environment, screen_name: str, property_list: Optional[list[Property]], property: Property, mdlist: MDList, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.screen_manager: MDScreenManager = screen_manager
@@ -29,61 +31,81 @@ class PropertyItem(BaseListItem, ILeftBodyTouch):
         self.property: Property = property
         self.name_w = MDLabel(text=self.property.name)
         self.mdlist = mdlist
-        self.add_widget(self.name_w)
-        self.value_w = MDLabel(text=str(self.property.name))
-        self.add_widget(self.value_w)
-        self.button = PropertyItemRightButton(self.property_list, self.property, self)
+        self.text = f"{property.name}: {property.value}"
+        self.button = PropertyItemRightButton(environment, self.property_list, self.property, self)
         self.add_widget(self.button)
         self.update()
+        self.ids._right_container.width = 120
     
     def delete(self):
-        if self.property_list != None:
-            self.property_list.remove(self.property)
-            self.mdlist.remove_widget(self)
+        self.property_list.remove(self.property)
+        self.mdlist.remove_widget(self)
 
     def update(self):
-        self.name_w.text = self.property.name
-        self.value_w.text = str(self.property.value)
+        self.text = f"{self.property.name}: {self.property.value}"
     
     def on_release(self):
-        pe = PropertyEditor(self.screen_manager, self.environment, self.screen_name, self.property)
+        pe = PropertyEditor(self.screen_manager, self.environment, self.screen_name, self.mdlist, self, self.property)
         self.screen_manager.add_widget(pe)
         self.screen_manager.current = pe.name
 
 
-class PropertyItemRightButton(MDFlatButton, IRightBodyTouch):
-    def __init__(self, property_item: PropertyItem, property: Property, left: PropertyItem, **kwargs):
+class PropertyItemRightButton(IRightBodyTouch, MDRectangleFlatButton):
+    def __init__(self, environment, property_item: PropertyItem, property: Property, left_prop: PropertyItem, **kwargs):
         super().__init__(**kwargs)
+        self.environment: Environment = environment
         self.property_item = property_item
         self.property = property
-        self.left = left
-        self.text = "Генерировать"
-    
-    def on_release(self):
-        if self.property.has_generator():
-            self.property.generate()
-            self.left.update()
+        self.left_prop = left_prop
+        self.text = "Случайное"
+        self.pos_hint = { "center_y": 0.5 }
 
+    def on_release(self):
+        try:
+            if self.property.has_generator():
+                self.property.generate(self.environment)
+                self.left_prop.update()
+        except:
+            pass
+        
 
 class PropertyList(MDScrollView):
     def __init__(self, screen_manager, environment, screen_name, property_list, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.property_list: list[Property] = property_list
         self.list = MDList()
-        for prop in property_list:
-            self.list.add_widget(PropertyItem(screen_manager, environment, screen_name, property_list, prop, self.list))
+        self.list.id = "container"
+        self.screen_manager: MDScreenManager = screen_manager
+        self.environment: Environment = environment
+        self.screen_name: str = screen_name
+        self.update_list()
         self.add_widget(self.list)
+    
+    def update_list(self):
+        self.list.clear_widgets()
+        for prop in self.property_list:
+            self.list.add_widget(PropertyItem(self.screen_manager, self.environment, self.screen_name, self.property_list, prop, self.list))
+
+
+
+class PersonsScreenTopBar(MDTopAppBar):
+    def __init__(self, screen_manager, environment: Environment, **kwargs):
+        super().__init__(**kwargs)
+        self.screen_manager = screen_manager
+        self.environment: Environment = environment
+
 
 class PropertiesScreen(MDScreen):
-    def __init__(self, screen_manager, environment, *args, **kwargs):
+    def __init__(self, screen_manager, environment, screen_from, properties: list[property], title: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = "plist"
+        self.screen_from = screen_from
         self.screen_manager: MDScreenManager = screen_manager
         self.environment: Environment = environment
         box = MDBoxLayout()
         box.orientation = "vertical"
-        box.add_widget(PropertyEditorTopBar(screen_manager, environment, property))
-        box.add_widget(PropertyList(screen_manager, environment, "plist", self.environment.current_profile.sample_properties))
+        box.add_widget(PersonsScreenTopBar(screen_manager, environment, title=title))
+        box.add_widget(PropertyList(screen_manager, environment, "plist", properties))
         self.add_widget(box)
     
     def on_enter(self, *args):
@@ -94,18 +116,34 @@ class PropertiesScreen(MDScreen):
 
     def keypress(self, window, key, keycode, *largs):
         if key == 27:
-            self.save()
             self.screen_manager.current = self.screen_from
             self.screen_manager.remove_widget(self)
 
 
 class PropertyEditorTopBar(MDTopAppBar):
-    def __init__(self, screen_manager, environment: Environment, property: Property, **kwargs):
+    def __init__(self, screen_manager, environment: Environment, property_editor, pitem: PropertyItem, **kwargs):
         super().__init__(**kwargs)
         self.screen_manager = screen_manager
         self.environment: Environment = environment
-        self.note: Property = property
+        self.property: Property = pitem.property
+        self.property_list = pitem.property_list
+        self.property_editor: PropertyEditor = property_editor
         self.title = "Свойство"
+
+        def exit_without_save(x):
+            self.screen_manager.current = "plist"
+            self.screen_manager.remove_widget(property_editor)
+
+        def delete(x):
+            self.screen_manager.current = "plist"
+            self.screen_manager.remove_widget(property_editor)
+            pitem.delete()
+            
+
+        self.right_action_items = [
+            ["delete", delete, "Удалить свойство"],
+            ["content-save-off", exit_without_save, "Выйти без сохранения"],
+        ]
 
 
 class PropertyName(MDTextField):
@@ -144,7 +182,7 @@ class PropertyGeneratorArguments(MDTextField):
 
 
 class PropertyEditor(MDScreen):
-    def __init__(self, screen_manager: MDScreenManager, environment: Environment, screen_from: str, property: Property, *args, **kwargs):
+    def __init__(self, screen_manager: MDScreenManager, environment: Environment, screen_from: str, plist: MDList, pitem: PropertyItem, property: Property, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = "property"
         self.screen_manager: MDScreenManager = screen_manager
@@ -153,7 +191,7 @@ class PropertyEditor(MDScreen):
         self.property: Property = property
         box = MDBoxLayout()
         box.orientation = "vertical"
-        box.add_widget(PropertyEditorTopBar(screen_manager, environment, property))
+        box.add_widget(PropertyEditorTopBar(screen_manager, environment, self, pitem))
         bl = MDList()
         self.p_name = PropertyName(property)
         self.p_value = PropertyValue(property)
@@ -171,7 +209,7 @@ class PropertyEditor(MDScreen):
             try:
                 if self.p_generator.text in environment.default_generators.keys():
                     self.p_value.text = object_as_str(self.property.agenerate(environment, self.p_generator.text, json.loads(self.p_arguments.text)))
-            finally:
+            except:
                 pass
 
         bl.add_widget(MDFlatButton(text="Сгенерировать", on_release = gen_on_release))
