@@ -1,6 +1,7 @@
 import os
 import json
 import copy
+from typing import Optional
 from generators import *
 
 
@@ -99,8 +100,6 @@ class Person:
         return dct
 
     pass
-
-from typing import Optional
 
 
 class Environment:

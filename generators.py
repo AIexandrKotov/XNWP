@@ -10,9 +10,9 @@ class Generator:
     @staticmethod
     def get_generators():
         return {
-            "Digit": DigitGenerator(),
-            "RandomChoose": RandomChooseGenerator(),
-            "ChanceChoose": ChanceChooseGenerator(),
+            "d": DigitGenerator(),
+            "rc": RandomChooseGenerator(),
+            "cc": ChanceChooseGenerator(),
         }
 
     def next(self, **kwargs):

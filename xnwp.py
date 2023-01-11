@@ -9,17 +9,17 @@ from ui import *
 
 
 class MainApp(MDApp):
-    def __init__(self, env: Environment, **kwargs):
+    def __init__(self, environment: Environment, **kwargs):
         super().__init__(**kwargs)
-        self.env = env
+        self.environment = environment
 
     def build(self):
         sm = MDScreenManager()
-        sm.add_widget(NotesListScreen(sm, self.env, name="notelist"))
+        sm.add_widget(MainScreen(sm, self.environment))
         return sm
 
     def on_stop(self):
-        self.env.save()
+        self.environment.save()
 
 
 Config.set("kivy", "exit_on_escape", "0")
