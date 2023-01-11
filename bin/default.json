@@ -42,7 +42,9 @@
         },
         {
             "__note__": true,
-            "tags": [],
+            "tags": [
+                ""
+            ],
             "text": "\u041d\u043e\u0432\u0430\u044f \u0438\u0434\u0435\u044f"
         },
         {
@@ -70,7 +72,7 @@
                     },
                     "generator": "d",
                     "name": "\u0412\u043e\u0437\u0440\u0430\u0441\u0442",
-                    "value": 78
+                    "value": 46
                 }
             ],
             "tags": "\u0413\u043b\u0430\u0432\u043d\u044b\u0435"
@@ -93,10 +95,23 @@
                     },
                     "generator": "d",
                     "name": "\u0412\u043e\u0437\u0440\u0430\u0441\u0442",
-                    "value": 87
+                    "value": 66
                 }
             ],
             "tags": "\u0413\u043b\u0430\u0432\u043d\u044b\u0435"
+        },
+        {
+            "__person__": true,
+            "properties": [
+                {
+                    "__property__": true,
+                    "genargs": {},
+                    "generator": "",
+                    "name": "\u041d\u043e\u0432\u043e\u0435 \u0441\u0432\u043e\u0439\u0441\u0442\u0432\u043e",
+                    "value": 0
+                }
+            ],
+            "tags": []
         }
     ],
     "sample_persons": [

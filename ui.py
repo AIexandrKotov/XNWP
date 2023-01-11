@@ -21,10 +21,25 @@ from notes import NotesList
 from logic import *
 
 class PersonsScreenTopBar(MDTopAppBar):
-    def __init__(self, screen_manager, environment: Environment, **kwargs):
+    def __init__(self, screen_manager, environment: Environment, plist: PersonList, **kwargs):
         super().__init__(**kwargs)
         self.screen_manager = screen_manager
         self.environment: Environment = environment
+
+        def add_new_person(x):
+            person = Person()
+            property = Property()
+            property.name = "Новое свойство"
+            property.value = 0
+            person.properties.append(property)
+            self.environment.current_profile.persons.append(person)
+            plist.update_list()
+        
+        def add_new_sample_person(x):
+            # todo
+            pass
+
+        self.right_action_items = [["plus", add_new_person, "Новый персонаж"], ["plus-circle-outline", add_new_sample_person, "Персонаж из шаблонов"]]
 
 
 class PersonsTab(MDBottomNavigationItem):
@@ -38,8 +53,9 @@ class PersonsTab(MDBottomNavigationItem):
 
         box = MDBoxLayout()
         box.orientation = "vertical"
-        box.add_widget(PersonsScreenTopBar(screen_manager, environment, title="Персонажи"))
-        box.add_widget(PersonList(screen_manager, environment, "mainscreen", self.environment.current_profile.persons, title="Персонаж"))
+        self.plist = PersonList(screen_manager, environment, "mainscreen", self.environment.current_profile.persons, title="Персонаж")
+        box.add_widget(PersonsScreenTopBar(screen_manager, environment, self.plist, title="Персонажи"))
+        box.add_widget(self.plist)
         self.add_widget(box)
 
 

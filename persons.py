@@ -32,7 +32,7 @@ class PersonItem(TwoLineListItem, ILeftBodyTouch):
         self.person: Person = person
         self.mdlist = mdlist
         self.title = title
-        self.text = self.person.properties[0].value
+        self.text = str(self.person.properties[0].value)
         self.secondary_text = ' / '.join(str(x.value) for x in self.person.properties[1:5])[:100]
         self.update()
     
@@ -41,7 +41,8 @@ class PersonItem(TwoLineListItem, ILeftBodyTouch):
         self.mdlist.remove_widget(self)
 
     def update(self):
-        self.text = self.person.properties[0].value
+        self.text = str(self.person.properties[0].value)
+        self.secondary_text = ' / '.join(str(x.value) for x in self.person.properties[1:5])[:100]
     
     def on_release(self):
         pe = PropertiesScreen(self.screen_manager, self.environment, self.screen_name, self.person.properties, self.title)
@@ -68,6 +69,28 @@ class PersonList(MDScrollView):
             self.list.add_widget(PersonItem(self.screen_manager, self.environment, self.screen_name, self.person_list, person, self.list, self.title))
 
 
+class PersonsScreenTopBar(MDTopAppBar):
+    def __init__(self, screen_manager, environment: Environment, plist: PersonList, **kwargs):
+        super().__init__(**kwargs)
+        self.screen_manager = screen_manager
+        self.environment: Environment = environment
+
+        def add_new_person(x):
+            person = Person()
+            property = Property()
+            property.name = "Новое свойство"
+            property.value = 0
+            person.properties.append(property)
+            self.environment.current_profile.persons.append(person)
+            plist.update_list()
+        
+        def add_new_sample_person(x):
+            # todo
+            pass
+
+        self.right_action_items = [["plus", add_new_person, "Новый персонаж"], ["plus-circle-outline", add_new_sample_person, "Персонаж из шаблонов"]]
+
+
 class PersonsScreen(MDScreen):
     def __init__(self, screen_manager, environment, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -77,8 +100,9 @@ class PersonsScreen(MDScreen):
 
         box = MDBoxLayout()
         box.orientation = "vertical"
-        box.add_widget(PersonsScreenTopBar(screen_manager, environment, title="Шаблонные персонажи"))
-        box.add_widget(PersonList(screen_manager, environment, "persons", self.environment.current_profile.sample_persons, title="Шаблон персонажа"))
+        self.plist = PersonList(screen_manager, environment, "persons", self.environment.current_profile.sample_persons, title="Шаблон персонажа")
+        box.add_widget(PersonsScreenTopBar(screen_manager, environment, self.plist, title="Шаблонные персонажи"))
+        box.add_widget(self.plist)
         self.add_widget(box)
     
     def on_enter(self, *args):

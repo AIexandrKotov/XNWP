@@ -87,12 +87,25 @@ class PropertyList(MDScrollView):
             self.list.add_widget(PropertyItem(self.screen_manager, self.environment, self.screen_name, self.property_list, prop, self.list))
 
 
-
-class PersonsScreenTopBar(MDTopAppBar):
-    def __init__(self, screen_manager, environment: Environment, **kwargs):
+class PropertyScreenTopBar(MDTopAppBar):
+    def __init__(self, screen_manager, environment, plist: PropertyList, **kwargs):
         super().__init__(**kwargs)
         self.screen_manager = screen_manager
         self.environment: Environment = environment
+        self.properties = plist.property_list
+
+        def add_new_property(x):
+            property = Property()
+            property.name = "Новое свойство"
+            property.value = 0
+            self.properties.append(property)
+            plist.update_list()
+        
+        def add_new_sample_property(x):
+            # todo
+            pass
+
+        self.right_action_items = [["plus", add_new_property, "Новое свойство"], ["plus-circle-outline", add_new_sample_property, "Свойство из шаблонов"]]
 
 
 class PropertiesScreen(MDScreen):
@@ -104,8 +117,9 @@ class PropertiesScreen(MDScreen):
         self.environment: Environment = environment
         box = MDBoxLayout()
         box.orientation = "vertical"
-        box.add_widget(PersonsScreenTopBar(screen_manager, environment, title=title))
-        box.add_widget(PropertyList(screen_manager, environment, "plist", properties))
+        self.plist = PropertyList(screen_manager, environment, "plist", properties)
+        box.add_widget(PropertyScreenTopBar(screen_manager, environment, self.plist, title=title))
+        box.add_widget(self.plist)
         self.add_widget(box)
     
     def on_enter(self, *args):
@@ -189,6 +203,7 @@ class PropertyEditor(MDScreen):
         self.environment: Environment = environment
         self.screen_from: str = screen_from
         self.property: Property = property
+        self.pitem = pitem
         box = MDBoxLayout()
         box.orientation = "vertical"
         box.add_widget(PropertyEditorTopBar(screen_manager, environment, self, pitem))
@@ -237,3 +252,4 @@ class PropertyEditor(MDScreen):
             self.save()
             self.screen_manager.current = self.screen_from
             self.screen_manager.remove_widget(self)
+            self.pitem.update()
