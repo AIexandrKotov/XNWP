@@ -14,6 +14,14 @@ class Generator:
             "rc": RandomChooseGenerator(),
             "cc": ChanceChooseGenerator(),
         }
+    
+    @staticmethod
+    def get_generators_help():
+        return '''Реализованные генераторы:
+        d - Числовой генератор, аргументы l, u: int
+        rc - Генератор случайного выбора, аргумент c: list
+        cc - Генератор шансового выбора, аргумент c_c: list[tuple[float, object]]
+        '''
 
     def next(self, **kwargs):
         return None
@@ -26,13 +34,13 @@ class RussianNameGenerator(Generator):
 
 
 class DigitGenerator(Generator):
-    def next(self, lower: int, upper: int):
-        return self.Rnd.randint(lower, upper)
+    def next(self, l: int, u: int):
+        return self.Rnd.randint(l, u)
 
 
 class RandomChooseGenerator(Generator):
-    def next(self, chooses: list):
-        return chooses[self.Rnd.randint(0, len(chooses))]
+    def next(self, c: list):
+        return c[self.Rnd.randint(0, len(c) - 1)]
 
 
 class ChanceChooseGenerator(Generator):
@@ -41,9 +49,9 @@ class ChanceChooseGenerator(Generator):
         overall = sum(i for i, j in cached_items)
         return [(i / overall, j) for i, j in cached_items]
 
-    def next(self, chance_chooses: list[tuple[float, object]]):
+    def next(self, c_c: list[tuple[float, object]]):
         f = self.Rnd.random()
-        items = self.optimize(chance_chooses)
+        items = self.optimize(c_c)
         if len(items) == 0:
             return "ChanceChooses not specified"
         sum = 0.0

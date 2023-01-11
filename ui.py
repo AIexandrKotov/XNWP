@@ -15,7 +15,7 @@ from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationIt
 from kivymd.uix.button import *
 from kivymd.uix.stacklayout import MDStackLayout
 from kivy.core.window import Window
-from properties import PropertyEditor
+from properties import *
 from notes import NotesList
 from logic import *
 
@@ -38,15 +38,21 @@ class MiscTab(MDBottomNavigationItem):
         self.name = "Misc"
         self.text = "Разное"
         self.icon = "animation"
-        sl = MDAnchorLayout()
-        sl.anchor_y = "top"
+        sl = MDBoxLayout()
+        sl.orientation = "vertical"
 
         def start_props(_self):
             p = PropertyEditor(self.screen_manager, self.environment, "mainscreen", Property())
             self.screen_manager.add_widget(p)
             self.screen_manager.current = p.name
         
+        def start_proplist(_self):
+            ps = PropertiesScreen(self.screen_manager, self.environment)
+            self.screen_manager.add_widget(ps)
+            self.screen_manager.current = ps.name
+        
         sl.add_widget(MDRectangleFlatButton(text="Тест свойств", on_release=start_props))
+        sl.add_widget(MDRectangleFlatButton(text="Тест списка свойств", on_release=start_proplist))
         self.add_widget(sl)
 
 

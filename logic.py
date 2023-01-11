@@ -134,6 +134,17 @@ class Property:
     def generate(self, e: Environment):
         self.value = e.default_generators[self.generator].next(**self.genargs)
         return self.value
+    
+    def agenerate(self, e: Environment, generator: str, args: dict) -> object:
+        return e.default_generators[generator].next(**args)
+
+    @property
+    def js_gargs(self):
+        return json.dumps(self.genargs)
+    
+    @js_gargs.setter
+    def js_gargs(self, s: str):
+        self.genargs = json.loads(s)
 
     def encode(self):
         return {

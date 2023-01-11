@@ -60,7 +60,7 @@ profile.persons.append(Alex)
 profile.persons.append(Kate)
 
 s = profile.save()
-profile.savefile("bin/default.json")
+profile.savefile("bin/a.json")
 # print(s)
 # e = Profile.load(s)
 # print(e.save())
