@@ -86,11 +86,8 @@ class PersonsScreenTopBar(MDTopAppBar):
             plist.update_list()
         
         def add_new_sample_person(x):
-            person = copy.deepcopy(self.environment.current_profile.sample_persons[0])
-            self.environment.current_profile.persons.append(person)
-            plist.update_list()
             pass
-
+        
         self.right_action_items = [["plus", add_new_person, "Новый персонаж"], ["plus-circle-outline", add_new_sample_person, "Персонаж из шаблонов"]]
 
 

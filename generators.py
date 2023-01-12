@@ -13,6 +13,7 @@ class Generator:
             "d": DigitGenerator(),
             "rc": RandomChooseGenerator(),
             "cc": ChanceChooseGenerator(),
+            "date": DateGenerator(),
         }
     
     @staticmethod
@@ -21,6 +22,7 @@ class Generator:
         d - Числовой генератор, аргументы l, u: int
         rc - Генератор случайного выбора, аргумент c: list
         cc - Генератор шансового выбора, аргумент c_c: list[tuple[float, object]]
+        date - генератор даты, необяз. аргумент year: tuple[int, int]
         '''
 
     def next(self, **kwargs):
@@ -31,6 +33,14 @@ class RussianNameGenerator(Generator):
     # сделать это когда-нибудь
     def next(self, **kwargs):
         return "Next name"
+
+
+class DateGenerator(Generator):
+    def next(self, year=None):
+        if year == None:
+            return f'{str(self.Rnd.randint(1, 31)).zfill(2)}.{str(self.Rnd.randint(1, 12)).zfill(2)}'
+        else:
+            return f'{str(self.Rnd.randint(1, 31)).zfill(2)}.{str(self.Rnd.randint(1, 12)).zfill(2)}.{str(self.Rnd.randint(year[0], year[1]))}'
 
 
 class DigitGenerator(Generator):
