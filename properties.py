@@ -35,7 +35,7 @@ class PropertyItem(OneLineAvatarIconListItem, ILeftBodyTouch):
         self.button = PropertyItemRightButton(environment, self.property_list, self.property, self)
         self.add_widget(self.button)
         self.update()
-        self.ids._right_container.width = 120
+        self.ids._right_container.width = 200
     
     def delete(self):
         self.property_list.remove(self.property)
