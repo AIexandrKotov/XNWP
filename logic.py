@@ -140,7 +140,7 @@ class Property:
 
     @property
     def js_gargs(self):
-        return json.dumps(self.genargs)
+        return json.dumps(self.genargs, ensure_ascii=False)
     
     @js_gargs.setter
     def js_gargs(self, s: str):
