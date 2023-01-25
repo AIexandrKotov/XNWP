@@ -38,9 +38,9 @@ class XNWPProfile:
 
     @staticmethod
     def loads(s: str) -> XNWPProfile:
-        return XNWPProfile.from_json(s) # type: ignore
+        return XNWPProfile.from_json(s)  # type: ignore
 
     @staticmethod
     def loadfile(path: str) -> XNWPProfile:
         with open(path, "r") as rf:
-            return XNWPProfile.from_json(rf.read()) # type: ignore
+            return XNWPProfile.from_json(rf.read())  # type: ignore
