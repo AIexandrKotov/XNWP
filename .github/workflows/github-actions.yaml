@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run app tests
+        run: pytest refactoring
+
+      - name: Run flake8
+        run: flake8 refactoring
+      
+      - name: Run mypy
+        run: mypy refactoring
