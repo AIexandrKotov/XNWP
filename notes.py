@@ -8,7 +8,7 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.bottomnavigation import MDBottomNavigationItem
 from kivy.core.window import Window
-from logic import *
+from old_logic import *
 
 
 #

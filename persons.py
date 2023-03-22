@@ -20,7 +20,7 @@ from kivymd.uix.button import MDFlatButton, MDRectangleFlatButton
 from kivy.core.window import Window
 from properties import *
 from notes import NotesList
-from logic import *
+from old_logic import *
 import copy
 
 class PersonItem(TwoLineListItem, ILeftBodyTouch):

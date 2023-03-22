@@ -18,7 +18,7 @@ from kivy.core.window import Window
 from properties import *
 from persons import *
 from notes import NotesList
-from logic import *
+from old_logic import *
 
 class PersonsScreenTopBar(MDTopAppBar):
     def __init__(self, screen_manager, environment: Environment, plist: PersonList, **kwargs):

@@ -19,7 +19,7 @@ from kivymd.uix.stacklayout import MDStackLayout
 from kivymd.uix.button import MDFlatButton, MDRectangleFlatButton
 from kivy.core.window import Window
 from notes import NotesList
-from logic import *
+from old_logic import *
 
 class PropertyItem(OneLineAvatarIconListItem, ILeftBodyTouch):
     def __init__(self, screen_manager, environment, screen_name: str, property_list: Optional[list[Property]], property: Property, mdlist: MDList, *args, **kwargs):

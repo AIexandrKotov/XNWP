@@ -1,6 +1,6 @@
 import typing
 
-from logic import *
+from old_logic import *
 import copy
 
 e = Environment()

@@ -3,11 +3,9 @@ from __future__ import annotations
 import dataclasses
 import json
 from dataclasses import dataclass, field
+from typing import Any
 
 from dataclasses_json import dataclass_json
-from note import Note
-from person import Person
-from property import Property
 
 
 @dataclass_json
@@ -44,3 +42,36 @@ class XNWPProfile:
     def loadfile(path: str) -> XNWPProfile:
         with open(path, "r") as rf:
             return XNWPProfile.from_json(rf.read())  # type: ignore
+
+
+@dataclass_json
+@dataclass
+class Note:
+    text: str
+
+
+@dataclass_json
+@dataclass
+class Person:
+    properties: list[tuple[str, list[Property]]] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.properties = [] if self.properties is None else self.properties
+
+
+@dataclass_json
+@dataclass
+class Property:
+    name: str
+    generator: str
+    icon: str
+    value: Any = field(default_factory=str)
+    generator_arguments: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def str_arguments(self) -> str:
+        return json.dumps(self.generator_arguments, ensure_ascii=False, indent=4)
+
+    @str_arguments.setter
+    def str_arguments(self, s: str) -> None:
+        self.generator_arguments: dict[str, Any] = json.loads(s)

@@ -4,7 +4,7 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager, ScreenManager
 from kivy.config import Config
 from kivy.core.window import Window
-from logic import *
+from old_logic import *
 from ui import *
 
 

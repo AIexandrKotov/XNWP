@@ -1,4 +1,5 @@
 python -m venv venv // Создание локального окружения питона
+pip install requirements
 venv/scripts/activate // (Вызвать в cmd в корне проекта) Запуск локального окружения в сессии
 flake8 <path> // питонячий линтер кода (поиск говна)
 black <path> // автоформаттер кода

@@ -2,7 +2,7 @@ import os
 import json
 import copy
 from typing import Optional
-from generators import *
+from old_generators import *
 
 
 class Profile:

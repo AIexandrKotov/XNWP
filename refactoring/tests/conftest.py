@@ -1,8 +1,5 @@
 import pytest
-from note import Note
-from person import Person
-from property import Property
-from xnwpprofile import XNWPProfile
+from logic import Note, Person, Property, XNWPProfile
 
 
 @pytest.fixture()
