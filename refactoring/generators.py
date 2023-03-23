@@ -85,7 +85,7 @@ class DBChooseGenerator(AbstractGenerator):
     def get_next(  # type: ignore
         self, /, *args: tuple, db_name: str, **kwargs: dict[str, Any]
     ) -> Any:
-        return self.random.choice(databases.get_by_name(db_name))
+        return self.random.choice(databases.get_content_by_name(db_name))
 
     def get_default(self) -> dict[str, Any]:
         return {"db_name": "default"}
@@ -150,7 +150,7 @@ class RanameDatabaseGenerator(AbstractGenerator, Raname):
         **kwargs: dict[str, Any],
     ) -> str:
         return self.level_i(
-            databases.get_by_name(db_name),
+            databases.get_content_by_name(db_name),
             self.random.randint(min_depth, max_depth),
             push_depth,
             only_center,

@@ -1,7 +1,24 @@
 import databases
 import generators
 
-databases.datas = {"names": ["Константин", "Акакий"]}
+databases.default_dbfiles = databases.Database(
+    files=[
+        databases.Datalist(
+            filename="default",
+            datasets=[
+                databases.Dataset(
+                    name="names",
+                    description="default",
+                    content=[
+                        "Константин",
+                        "Акакий",
+                    ],
+                )
+            ],
+        )
+    ]
+)
+databases.user_dbfiles = databases.default_dbfiles
 
 p = generators.Generators.db_choose_generator.to_default_property()
 p.generator_arguments = {"db_name": "names"}
