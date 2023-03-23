@@ -1,0 +1,15 @@
+kivy
+kivymd
+flake8
+mypy
+flake8-blind-except
+flake8-builtins
+flake8-comprehensions
+flake8-bandit
+flake8-bugbear
+pep8-naming
+flake8-isort
+flake8-pytest-style
+pytest
+dataclasses-json
+python-for-android

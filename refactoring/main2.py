@@ -1,29 +1,12 @@
 import databases
 import generators
 
-databases.default_dbfiles = databases.Database(
-    files=[
-        databases.Datalist(
-            filename="default",
-            datasets=[
-                databases.Dataset(
-                    name="names",
-                    description="default",
-                    content=[
-                        "Константин",
-                        "Акакий",
-                    ],
-                )
-            ],
-        )
-    ]
-)
-databases.user_dbfiles = databases.default_dbfiles
+databases.default_dbfiles = databases.Database()
+databases.user_dbfiles = databases.Database()
 
 p = generators.Generators.db_choose_generator.to_default_property()
-p.generator_arguments = {"db_name": "names"}
+p.generator_arguments = {"db_name": "rus_male_names"}
 
-print(generators.Generators.get_value(p))
 
 # logic.XNWPProfile(
 #     notes=[("default", [])],
@@ -31,3 +14,7 @@ print(generators.Generators.get_value(p))
 #     sample_properties=[("default", [p])],
 #     sample_persons=[("default", [])],
 # ).savefile("abc.json")
+
+databases.load()
+print(generators.Generators.get_value(p))
+databases.save()

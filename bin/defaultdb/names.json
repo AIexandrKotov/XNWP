@@ -1,0 +1,16 @@
+{
+    "datasets": [
+        {
+            "content": [
+                "Александр",
+                "Алексей",
+                "Артём",
+                "Андрей",
+                "Борис"
+            ],
+            "description": "Русские имена (мужские)",
+            "name": "rus_male_names"
+        }
+    ],
+    "filename": "names.json"
+}
