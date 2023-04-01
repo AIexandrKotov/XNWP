@@ -6,6 +6,7 @@ import os
 from dataclasses import dataclass, field
 
 from dataclasses_json import dataclass_json
+from logic import XNWPProfile
 
 
 @dataclass_json
@@ -73,6 +74,8 @@ class Dataset:
 
 default_dbfiles: Database
 user_dbfiles: Database
+user_profiles: dict[str, XNWPProfile]
+last_profile: str
 
 
 def create() -> None:
@@ -105,18 +108,32 @@ def save() -> None:
         user_dbfiles.save(os.path.join("bin", "userdb"))
 
 
+def load_profiles(path: str) -> dict[str, XNWPProfile]:
+    dct: dict[str, XNWPProfile] = {}
+    for file in Database.get_files(path):
+        dct[os.path.basename(file)] = XNWPProfile.loadfile(file)
+    return dct
+
+
 def load() -> None:
     from kivy import platform
 
+    global default_dbfiles
+    global user_dbfiles
+    global user_profiles
+
     if platform == "android":
-        from android.storage import primary_external_storage_path
+        pass
+        # from android.storage import primary_external_storage_path
 
         # эту часть кода получится написать только на линуксе. увы
     elif platform == "win":
-        global default_dbfiles
-        global user_dbfiles
         default_dbfiles = Database.load(os.path.join("bin", "defaultdb"))
         user_dbfiles = Database.load(os.path.join("bin", "userdb"))
+        if os.path.exists(os.path.join("bin", "profiles")):
+            user_profiles = load_profiles(os.path.join("bin", "profiles"))
+        else:
+            user_profiles = {"last.json": XNWPProfile()}
 
 
 def get_content_by_name_at(db_name: str, db: Database) -> list[str]:
