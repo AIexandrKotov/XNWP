@@ -1,6 +1,7 @@
 python -m venv venv // Создание локального окружения питона
-pip install -r requirements.txt
 venv/scripts/activate // (Вызвать в cmd в корне проекта) Запуск локального окружения в сессии
+source ./venv/bin/activate // Запуск для линукса
+pip install -r requirements.txt
 flake8 <path> // питонячий линтер кода (поиск говна)
 black <path> // автоформаттер кода
 mypy <path> // статический анализатор кода
