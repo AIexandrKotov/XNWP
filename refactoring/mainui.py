@@ -14,14 +14,15 @@ class MainApp(MDApp):
         self.profile = profile
 
     def build(self) -> MDScreenManager:
-        screen_manager = MDScreenManager()
-        screen_manager.add_widget(MainScreen(screen_manager, self.profile))
-        return screen_manager
+        self.theme_cls.theme_style = "Light"
+        self.theme_cls.primary_palette = "DeepPurple"
+        self.theme_cls.accent_palette = "Purple"
+        return MainScreen(self.profile)
 
     def on_stop(self) -> None:
         self.profile.savefile(os.path.join("bin", "default.json"))
 
 
 Config.set("kivy", "exit_on_escape", "0")
-e = XNWPProfile.loadfile(os.path.join("bin", "default.json"))
-MainApp(e).run()
+profile = XNWPProfile.loadfile(os.path.join("bin", "default.json"))
+MainApp(profile).run()

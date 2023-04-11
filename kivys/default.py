@@ -9,6 +9,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.list import OneLineAvatarListItem, OneLineIconListItem, IconLeftWidget, TwoLineIconListItem
 from kivymd.uix.list import MDList, OneLineListItem
+from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.behaviors import TouchBehavior
 
@@ -75,7 +76,7 @@ MDScreen:
                         title: "Мои персонажи"
                         elevation: 2
                         left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
-                        right_action_items: [["plus"]]
+                        right_action_items: [["plus", lambda x: app.make_add_group_dialog()]]
                     MDScrollView:
 
                         MDList:
@@ -374,6 +375,7 @@ class DialogOneLineIconItem(OneLineIconListItem):
 class Example(MDApp):
     delete_dialog = None
     edit_group_dialog = None
+    add_group_dialog = None
 
     def build(self):
         self.theme_cls.theme_style = "Light"
@@ -412,6 +414,29 @@ class Example(MDApp):
                 ]
             )
         self.edit_group_dialog.open()
+    
+    def make_add_group_dialog(self):
+        if not self.add_group_dialog:
+            self.add_group_dialog = MDDialog(
+                title="Добавить группу",
+                buttons=[
+                    MDFlatButton(
+                        text="Отменить",
+                        theme_text_color="Custom",
+                        text_color=self.theme_cls.primary_color,
+                    ),
+                    MDFlatButton(
+                        text="Создать группу",
+                        theme_text_color="Custom",
+                        text_color=self.theme_cls.primary_color,
+                    ),
+                ],
+            )
+            textfield = MDTextField()
+            textfield.padding = [25, 0, 25, 0]
+            self.spacing = "10dp"
+            self.add_group_dialog.add_widget(textfield)
+        self.add_group_dialog.open()
 
 
 Example().run()
