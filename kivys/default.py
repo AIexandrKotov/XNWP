@@ -38,34 +38,75 @@ MDScreen:
                         elevation: 2
                         left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
                         right_action_items: [["repeat"]]
-                    GridLayout:
-                        cols: 1
-                        row_default_height: 100
-                        padding: 50, 0, 50, 0
-                        MDTextField:
-                            mode: "rectangle"
-                            hint_text: "Название свойства"
-                            text: "Имя персонажа"
-                        MDTextField:
-                            mode: "rectangle"
-                            hint_text: "Значение свойства"
-                            text: "Евгений Петросян"
-                    MDTabs:
-                        padding: 50, 0, 50, 0
-                        NoGeneratorTab:
-                            title: "Нет"
-                        DigitGeneratorTab:
-                            title: "Число"
-                        DatabaseChooseGeneratorTab:
-                            title: "ДБ-выбор"
-                        DatabaseRanameGeneratorTab:
-                            title: "ДБ-Raname"
-                        ChooseGeneratorTab:
-                            title: "Выбор"
-                        RanameGeneratorTab:
-                            title: "Raname"
-                        CodeGeneratorTab:
-                            title: "Python"
+                    MDScrollView:
+                        MDList:
+                            cols: 1
+                            spacing: 25
+                            padding: 50, 0, 50, 0
+                            MDTextField:
+                                mode: "rectangle"
+                                hint_text: "Название свойства"
+                                text: "Имя персонажа"
+                            MDTextField:
+                                mode: "rectangle"
+                                hint_text: "Значение свойства"
+                                text: "Евгений Петросян"
+                                multiline: True
+                            MDRaisedButton:
+                                text: "Сгенерировать значение"
+                                font_size: 16
+                            MDTextField:
+                                mode: "rectangle"
+                                hint_text: "Генератор"
+                                text: "Отсутствует"
+                                readonly: True
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                spacing: 16
+                                adaptive_height: True
+                                adaptive_width: True
+                                MDRaisedButton:
+                                    text: "Настройки генератора"
+                                    font_size: 16
+                                MDRaisedButton:
+                                    text: "Выбрать другой"
+                                    font_size: 16
+                            # MDTabs:
+                            #     padding: 0, 0, 0, 0
+                            #     NoGeneratorTab:
+                            #         title: "Нет"
+                            #     DigitGeneratorTab:
+                            #         title: "Число"
+                            #     DatabaseChooseGeneratorTab:
+                            #         title: "ДБ-выбор"
+                            #     DatabaseRanameGeneratorTab:
+                            #         title: "ДБ-Raname"
+                            #     ChooseGeneratorTab:
+                            #         title: "Выбор"
+                            #     RanameGeneratorTab:
+                            #         title: "Raname"
+                            #     CodeGeneratorTab:
+                            #         title: "Python"
+            
+                            
+            MDScreen:
+                name: "persons"
+                MDBoxLayout:
+                    orientation: "vertical"
+                    MDTopAppBar:
+                        title: "Главные герои"
+                        elevation: 2
+                        left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
+                        right_action_items: [["content-paste"], ["plus-circle-outline"], ["plus"]]
+                        # вставить из буфера, 
+                        # добавить полностью пустонго персонажа,
+                        # добавить персонажа из шаблонов
+                    MDScrollView:
+                        MDList:
+                            TwoLineListItem:
+                                text: "Евгений Петросян"
+                                secondary_text: "Мужик из подворотни"
+                                on_release: app.edit_person_dialog()
                         
 
             MDScreen:
@@ -211,6 +252,12 @@ MDScreen:
 
                 MDNavigationDrawerLabel:
                     text: "Тестирование"
+
+                DrawerClickableItem:
+                    icon: "car-shift-pattern"
+                    right_text: ""
+                    text: "Список персонажей группы"
+                    on_release: scrm.current = "persons"
 
                 DrawerClickableItem:
                     icon: "car-shift-pattern"
@@ -376,6 +423,7 @@ class Example(MDApp):
     delete_dialog = None
     edit_group_dialog = None
     add_group_dialog = None
+    edit_person = None
 
     def build(self):
         self.theme_cls.theme_style = "Light"
@@ -401,6 +449,21 @@ class Example(MDApp):
                 ],
             )
         self.delete_dialog.open()
+    
+    def edit_person_dialog(self):
+        if not self.edit_person:
+            self.edit_person = MDDialog(
+                title="Редактировать персонажа",
+                type="simple",
+                items=[
+                    DialogOneLineIconItem(text="Переместить выше", icon="arrow-collapse-up"),
+                    DialogOneLineIconItem(text="Переместить ниже", icon="arrow-collapse-down"),
+                    DialogOneLineIconItem(text="Копировать в буфер", icon="content-copy"),
+                    DialogOneLineIconItem(text="Вырезать персонажа", icon="content-cut"),
+                    DialogOneLineIconItem(text="Удалить персонажа", icon="account-remove")
+                ]
+            )
+        self.edit_person.open()
     
     def edit_property_group_dialog(self):
         if not self.edit_group_dialog:
