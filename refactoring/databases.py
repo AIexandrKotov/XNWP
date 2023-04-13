@@ -125,7 +125,11 @@ def load() -> None:
         if os.path.exists(os.path.join("bin", "profiles")):
             user_profiles = load_profiles(os.path.join("bin", "profiles"))
         else:
-            user_profiles = {"last.json": XNWPProfile()}
+            user_profiles = {
+                "last.json": XNWPProfile(
+                    notes=[], persons=[], sample_persons=[], sample_properties=[]
+                )
+            }
 
 
 def get_content_by_name_at(db_name: str, db: Database) -> list[str]:

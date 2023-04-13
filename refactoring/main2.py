@@ -2,8 +2,8 @@ import databases
 import generators
 import logic
 
-databases.default_dbfiles = databases.Database()
-databases.user_dbfiles = databases.Database()
+databases.default_dbfiles = databases.Database(files=[])
+databases.user_dbfiles = databases.Database(files=[])
 
 p = generators.Generators.db_choose_generator.to_default_property()
 p.generator_arguments = {"db_name": "rus_male_names"}
