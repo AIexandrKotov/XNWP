@@ -1,20 +1,16 @@
 from __future__ import annotations
 
-import dataclasses
 import json
 import os
-from dataclasses import dataclass, field
 
-from dataclasses_json import dataclass_json
 from logic import XNWPProfile
+from pydantic import BaseModel
 
 
-@dataclass_json
-@dataclass
-class Database:
+class Database(BaseModel):
     """Представляет сериализуемый набор файлов как базу данных"""
 
-    files: list[Datalist] = field(default_factory=list)
+    files: list[Datalist]
     """Список файлов"""
 
     def save(self, directory: str) -> None:
@@ -23,7 +19,7 @@ class Database:
         for file in self.files:
             with open(os.path.join(directory, file.filename), "w+") as write_file:
                 json.dump(
-                    dataclasses.asdict(file),
+                    file.dict(),
                     write_file,
                     sort_keys=True,
                     indent=4,
@@ -41,34 +37,30 @@ class Database:
     def load(path: str) -> Database:
         files: list[Datalist] = []
         if not os.path.exists(path):
-            return Database(files)
+            return Database(files=files)
         for file in Database.get_files(path):
             with open(os.path.join(path, file), "r") as read_file:
                 files.append(Datalist.from_json(read_file.read()))  # type: ignore
-        return Database(files)
+        return Database(files=files)
 
 
-@dataclass_json
-@dataclass
-class Datalist:
+class Datalist(BaseModel):
     """Представляет файл, содержащий множество именованных наборов данных"""
 
     filename: str
     """Имя файла"""
-    datasets: list[Dataset] = field(default_factory=list)
+    datasets: list[Dataset]
     """Наборы данных"""
 
 
-@dataclass_json
-@dataclass
-class Dataset:
+class Dataset(BaseModel):
     """Представляет набор данных, предоставляемых для генераторов"""
 
     name: str
     """Внутреннее имя набора данных"""
     description: str
     """Текстовое описание набора данных"""
-    content: list[str] = field(default_factory=list)
+    content: list[str]
     """Содержимое набора данных"""
 
 
@@ -82,10 +74,10 @@ def create() -> None:
     global default_dbfiles
     global user_dbfiles
     default_dbfiles = Database(
-        [
+        files=[
             Datalist(
-                "names.json",
-                [
+                filename="names.json",
+                datasets=[
                     Dataset(
                         name="rus_male_names",
                         description="Русские имена (мужские)",
@@ -95,7 +87,7 @@ def create() -> None:
             )
         ]
     )
-    user_dbfiles = Database([])
+    user_dbfiles = Database(files=[])
 
 
 def save() -> None:
@@ -168,4 +160,6 @@ def add_list_in_default(
             )
             if exist is not None:
                 file.datasets.remove(exist)
-            file.datasets.append(Dataset(name, description, content))
+            file.datasets.append(
+                Dataset(name=name, description=description, content=content)
+            )

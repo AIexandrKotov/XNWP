@@ -21,11 +21,10 @@ KV = '''
 <Content2>
     adaptive_height: True
 
-    MDScrollView:
-        MDList:
-            TwoLineListItem:
-                text: "Сергей Сергеев"
-                secondary_text: "Не главный герой"
+    MDList:
+        TwoLineListItem:
+            text: "Сергей Сергеев"
+            secondary_text: "Не главный герой"
 
 
 MDBoxLayout:
@@ -35,7 +34,6 @@ MDBoxLayout:
         elevation: 2
         left_action_items: [["menu"]]
     MDScrollView:
-
         MDGridLayout:
             padding: 25, 0, 25, 0
             id: box

@@ -11,4 +11,4 @@ pep8-naming
 flake8-isort
 flake8-pytest-style
 pytest
-dataclasses-json
+pydantic

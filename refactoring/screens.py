@@ -8,6 +8,8 @@ from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
+from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.list import (
     IconLeftWidget,
     MDList,
@@ -48,6 +50,103 @@ class DialogOneLineIconItem(OneLineIconListItem):
 # ———————————————————————————————————————————————————————————————————————————
 # ————————————————————————— MyPersonsListScreen —————————————————————————
 # ———————————————————————————————————————————————————————————————————————————
+
+
+class ChooseSamplePersonElement(ThreeLineListItem):
+    def __init__(
+        self, person: Person, choose_screen: ChooseSamplePersonScreen, **kwargs: Any
+    ) -> None:
+        super().__init__(**kwargs)
+        self.person = person
+        self.choose_screen = choose_screen
+        self.text = PersonElement.get_text(self.person)
+        self.secondary_text = PersonElement.get_sec_text(self.person)
+        self.tertiary_text = PersonElement.get_ter_text(self.person)
+
+    def on_release(self) -> None:
+        self.choose_screen.choose_person(self.person)
+
+
+class PersonsGroupContent(MDBoxLayout):
+    def __init__(
+        self,
+        persons: list[Person],
+        choose_screen: ChooseSamplePersonScreen,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.adaptive_height = True
+        self.list = MDList()
+        self.persons = persons
+        self.choose_screen = choose_screen
+        self.add_widget(self.list)
+
+        for person in self.persons:
+            self.list.add_widget(ChooseSamplePersonElement(person, self.choose_screen))
+
+
+class ChooseSamplePersonScreen(MDScreen):
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        profile: XNWPProfile,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "choose_sample_person"
+        self.main_screen = main_screen
+        self.nav_drawer = nav_drawer
+        self.profile = profile
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+
+        top_bar = MDTopAppBar()
+        top_bar.title = "Выберите шаблон"
+        top_bar.elevation = 2
+        top_bar.left_action_items = [
+            ["menu", lambda _: self.nav_drawer.set_state("open")]
+        ]
+
+        scroll_view = MDScrollView()
+        self.box = MDGridLayout()
+        self.box.padding = (25, 0, 25, 0)
+        self.box.cols = 1
+        self.box.adaptive_height = True
+        scroll_view.add_widget(self.box)
+
+        box_layout1.add_widget(top_bar)
+        box_layout1.add_widget(scroll_view)
+
+        self.add_widget(box_layout1)
+
+    def update(self) -> ChooseSamplePersonScreen:
+        self.box.clear_widgets()
+        for group in self.profile.sample_persons:
+            self.box.add_widget(
+                MDExpansionPanel(
+                    content=PersonsGroupContent(group[1], self),
+                    panel_cls=MDExpansionPanelOneLine(text=group[0]),
+                )
+            )
+        return self
+
+    def choose_person(self, person: Person) -> None:
+        self.main_screen.person_list_screen.adding_sample(person)
+        self.main_screen.screen_manager.current = "persons_list"
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            self.main_screen.screen_manager.current = "persons_list"
 
 
 class EditPersounDialog(MDDialog):
@@ -249,10 +348,16 @@ class PersonsListScreen(MDScreen):
         self.persons.append(new_person)
         self.list.add_widget(PersonElement(person=new_person, persons_screen=self))
 
+    def adding_sample(self, person: Person) -> None:
+        new_person = copy.deepcopy(person)
+        self.persons.append(new_person)
+        self.list.add_widget(PersonElement(person=new_person, persons_screen=self))
+
     def add_sample_person(self) -> None:
         if len(self.profile.sample_persons) == 0:
             return
-        # todo create sample chooser
+        self.main_screen.choose_sample_person_screen.update()
+        self.main_screen.screen_manager.current = "choose_sample_person"
         pass
 
     def get_element_of_person(self, person: Person) -> PersonElement:
@@ -310,11 +415,23 @@ class PersonsListScreen(MDScreen):
     def on_enter(self, *args: Any) -> None:
         Window.bind(on_keyboard=self.keypress)
 
+    def update_persons_count_in_group(self) -> None:
+        if self.persons_tuple is not None:
+            if self.persons_tuple in self.profile.persons:
+                self.main_screen.my_persons_groups_screen.update_persons_count_in_group(
+                    self.persons_tuple
+                )
+            elif self.persons_tuple in self.profile.sample_persons:
+                self.main_screen.sample_persons_groups_screen.update_persons_count_in_group(
+                    self.persons_tuple
+                )
+
     def on_pre_leave(self, *args: Any) -> None:
         Window.unbind(on_keyboard=self.keypress)
+        self.update_persons_count_in_group()
 
     def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
-        if key == 27:
+        if key == 27 and self.nav_drawer.status != "opened":
             self.main_screen.screen_manager.current = self.ret_point
 
 
@@ -516,6 +633,7 @@ class MyPersonsGroupsScreen(MDScreen):
         self.add_new_group_dialog = AddNewPersonGroupDialog(self)
         self.edit_persoun_group_dialog = EditPersounGroupDialog(None, self)
         self.main_screen = main_screen
+        self.profile: XNWPProfile = profile
         box_layout1 = MDBoxLayout()
         box_layout1.orientation = "vertical"
 
@@ -530,7 +648,6 @@ class MyPersonsGroupsScreen(MDScreen):
         scroll_view = MDScrollView()
         self.list = MDList()
         scroll_view.add_widget(self.list)
-        self.profile: XNWPProfile = profile
         self.change_profile(profile)
 
         box_layout1.add_widget(top_bar)
@@ -621,6 +738,12 @@ class MyPersonsGroupsScreen(MDScreen):
         self.persons.remove(person_group)
         self.list.remove_widget(element_this)
         self.main_screen.update_groups_count()
+
+    def update_persons_count_in_group(
+        self, person_group: tuple[str, list[Person]]
+    ) -> None:
+        element_this = self.get_element_of_person_group(person_group)
+        element_this.update(person_group)
 
     def on_enter(self, *args: Any) -> None:
         Window.bind(on_keyboard=self.keypress)
@@ -727,21 +850,26 @@ class MainScreen(MDScreen):
         navigation_drawer.add_widget(nav_menu)
         self.add_widget(navigation_drawer)
 
-        self.screen_manager.add_widget(
-            MyPersonsGroupsScreen(self, nav_drawer=navigation_drawer, profile=profile)
+        self.my_persons_groups_screen = MyPersonsGroupsScreen(
+            self, nav_drawer=navigation_drawer, profile=profile
         )
+        self.screen_manager.add_widget(self.my_persons_groups_screen)
 
-        self.screen_manager.add_widget(
-            SamplePersonsGroupsScreen(
-                self, nav_drawer=navigation_drawer, profile=profile
-            )
+        self.sample_persons_groups_screen = SamplePersonsGroupsScreen(
+            self, nav_drawer=navigation_drawer, profile=profile
         )
+        self.screen_manager.add_widget(self.sample_persons_groups_screen)
 
         self.person_list_screen = PersonsListScreen(
             self, nav_drawer=navigation_drawer, profile=profile
         )
 
         self.screen_manager.add_widget(self.person_list_screen)
+
+        self.choose_sample_person_screen = ChooseSamplePersonScreen(
+            self, nav_drawer=navigation_drawer, profile=profile
+        )
+        self.screen_manager.add_widget(self.choose_sample_person_screen)
 
         self.update_groups_count()
 

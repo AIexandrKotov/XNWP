@@ -38,7 +38,13 @@ class AbstractGenerator:
     def to_default_property(
         self, name: str = "", value: Any = "", icon: str = ""
     ) -> Property:
-        return Property(name, str(self), icon, value, self.get_default())
+        return Property(
+            name=name,
+            generator=str(self),
+            icon=icon,
+            value=value,
+            generator_arguments=self.get_default(),
+        )
 
 
 @dataclass
