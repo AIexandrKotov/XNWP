@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 from kivy.core.window import Window
 from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
 from kivymd.uix.gridlayout import MDGridLayout
@@ -15,6 +15,7 @@ from kivymd.uix.list import (
     MDList,
     OneLineIconListItem,
     ThreeLineListItem,
+    TwoLineIconListItem,
     TwoLineListItem,
 )
 from kivymd.uix.navigationdrawer import (
@@ -45,6 +46,712 @@ class DialogOneLineIconItem(OneLineIconListItem):
         super().__init__(*args, **kwargs)
         self.text = text
         self.add_widget(IconLeftWidget(icon=icon))
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— GeneratorChooserScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— GeneratorSettingsScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class GeneratorSettingsScreen(MDScreen):
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        profile: XNWPProfile,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "generator_settings"
+        self.main_screen = main_screen
+        self.nav_drawer = nav_drawer
+        self.profile = profile
+        self.pproperty: Optional[Property] = None
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+
+        top_bar = MDTopAppBar()
+        top_bar.title = "Настройки генератора"
+        top_bar.elevation = 2
+        top_bar.left_action_items = [
+            ["menu", lambda _: self.nav_drawer.set_state("open")]
+        ]
+        top_bar.right_action_items = [
+            ["recycle-variant", lambda _: self.set_to_default()]
+        ]
+
+        self.screen_manager = MDScreenManager()
+
+        box_layout1.add_widget(top_bar)
+        box_layout1.add_widget(self.screen_manager)
+        self.add_widget(box_layout1)
+
+    def set_to_default(self) -> None:
+        pass
+
+    def change_profile(self, new_profile: XNWPProfile) -> None:
+        self.profile = new_profile
+
+    def update(self, pproperty: Property) -> None:
+        self.pproperty = pproperty
+        self.screen_manager.current_screen.update_pproperty(pproperty)
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+        if self.pproperty is None:
+            return
+        self.main_screen.property_editor_screen.update(
+            self.pproperty, self.main_screen.property_editor_screen.is_in_person_editor
+        )
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            self.main_screen.screen_manager.current = "property_editor"
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— PropertyEditorScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class GenerateValueButton(MDRaisedButton):
+    def __init__(self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.property_editor = property_editor
+        self.text = "Сгенерировать значение"
+        self.font_size = 16
+
+    def on_release(self) -> None:
+        self.property_editor.generate_value()
+
+
+class ChangeIconButton(MDRaisedButton):
+    def __init__(self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.property_editor = property_editor
+        self.pos_hint = {"center_x": 0.5, "center_y": 0.5}
+        self.text = "Сменить иконку"
+        self.font_size = 16
+
+    def on_release(self) -> None:
+        self.property_editor.change_icon()
+
+
+class OpenGeneratorSettingsButton(MDRaisedButton):
+    def __init__(self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.property_editor = property_editor
+        self.text = "Настройки генератора"
+        self.font_size = 16
+
+    def on_release(self) -> None:
+        self.property_editor.open_generator_settings()
+
+
+class ChangeGeneratorButton(MDRaisedButton):
+    def __init__(self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.property_editor = property_editor
+        self.text = "Выбрать другой"
+        self.font_size = 16
+
+    def on_release(self) -> None:
+        self.property_editor.change_generator()
+
+
+class PropertyEditorScreen(MDScreen):
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        profile: XNWPProfile,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "property_editor"
+        self.main_screen = main_screen
+        self.nav_drawer = nav_drawer
+        self.profile = profile
+        self.pproperty: Optional[Property] = None
+        self.is_in_person_editor = False
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+        box_layout1.spacing = 25
+
+        top_bar = MDTopAppBar()
+        top_bar.title = "Редактор свойства"
+        top_bar.elevation = 2
+        top_bar.left_action_items = [
+            ["menu", lambda _: self.nav_drawer.set_state("open")]
+        ]
+        box_layout1.add_widget(top_bar)
+
+        scroll_view = MDScrollView()
+        self.list = MDList()
+        self.list.spacing = 25
+        self.list.padding = 50, 0, 50, 0
+        self.list.cols = 1
+
+        self.name_text_field = MDTextField(
+            mode="rectangle", hint_text="Название свойства"
+        )
+        self.list.add_widget(self.name_text_field)
+        self.value_text_field = MDTextField(
+            mode="rectangle", hint_text="Значение свойства", multiline=True
+        )
+        self.list.add_widget(self.value_text_field)
+        self.list.add_widget(GenerateValueButton(self))
+        box_layout2 = MDBoxLayout()
+        box_layout2.orientation = "horizontal"
+        box_layout2.spacing = 16
+        box_layout2.adaptive_height = True
+        self.icon_text_field = MDTextField(
+            mode="rectangle", readonly=True, hint_text="Иконка свойства"
+        )
+        box_layout2.add_widget(self.icon_text_field)
+        box_layout2.add_widget(ChangeIconButton(self))
+        self.list.add_widget(box_layout2)
+        self.generator_text_field = MDTextField(
+            mode="rectangle", hint_text="Генератор", readonly=True
+        )
+        self.list.add_widget(self.generator_text_field)
+        box_layout3 = MDBoxLayout()
+        box_layout3.orientation = "horizontal"
+        box_layout3.spacing = 16
+        box_layout3.adaptive_height = True
+        box_layout3.adaptive_width = True
+        box_layout3.add_widget(OpenGeneratorSettingsButton(self))
+        box_layout3.add_widget(ChangeGeneratorButton(self))
+        self.list.add_widget(box_layout3)
+        scroll_view.add_widget(self.list)
+        box_layout1.add_widget(scroll_view)
+        self.add_widget(box_layout1)
+
+    def change_profile(self, new_profile: XNWPProfile) -> None:
+        self.profile = new_profile
+
+    def update(self, pproperty: Property, is_in_person_editor: bool) -> None:
+        self.is_in_person_editor = is_in_person_editor
+        self.pproperty = pproperty
+
+        self.name_text_field.text = self.pproperty.name
+        self.value_text_field.text = self.pproperty.value
+        self.icon_text_field.icon_left = PropertyEditorScreen.get_icon_from_icon(
+            self.pproperty.icon
+        )
+        self.icon_text_field.text = PropertyEditorScreen.get_text_from_icon(
+            self.pproperty.icon
+        )
+        self.generator_text_field.text = PropertyEditorScreen.get_generator_name(
+            self.pproperty.generator
+        )
+
+    @staticmethod
+    def get_generator_name(generator_name: str) -> str:
+        if generator_name == "":
+            return "Отсутствует"
+        else:
+            return generator_name
+
+    @staticmethod
+    def get_icon_from_icon(icon: str) -> str:
+        if icon == "":
+            return "border-none-variant"
+        else:
+            return icon
+
+    @staticmethod
+    def get_text_from_icon(icon: str) -> str:
+        if icon == "":
+            return "Отсутствует"
+        else:
+            return icon
+
+    def name_text_changed(self) -> None:
+        if self.pproperty is None:
+            return
+        self.pproperty.name = self.name_text_field.text
+
+    def value_text_changed(self) -> None:
+        if self.pproperty is None:
+            return
+        self.pproperty.value = self.value_text_field.text
+
+    def generate_value(self) -> None:
+        pass
+
+    def changing_icon(self) -> None:
+        pass
+
+    def change_icon(self) -> None:
+        pass
+
+    def open_generator_settings(self) -> None:
+        self.main_screen.screen_manager.current = "generator_settings"
+
+    def changing_generator(self) -> None:
+        pass
+
+    def change_generator(self) -> None:
+        pass
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+        self.name_text_changed()
+        self.value_text_changed()
+        if self.pproperty is None:
+            return
+        if self.is_in_person_editor:
+            pass
+        else:
+            self.main_screen.properties_list_screen.update_property(self.pproperty)
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            if self.is_in_person_editor:
+                pass
+            else:
+                self.main_screen.screen_manager.current = "properties_list"
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— PropertiesListScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class ChooseSamplePropertyElement(TwoLineIconListItem):
+    def __init__(
+        self,
+        pproperty: Property,
+        choose_screen: ChooseSamplePropertyScreen,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.pproperty = pproperty
+        self.choose_screen = choose_screen
+        self.text = PropertyElement.get_text(self.pproperty)
+        self.secondary_text = PropertyElement.get_sec_text(self.pproperty)
+        self.add_widget(
+            IconLeftWidget(icon=PropertyElement.get_prop_icon(self.pproperty))
+        )
+
+    def on_release(self) -> None:
+        self.choose_screen.choose_property(self.pproperty)
+
+
+class PropertiesGroupContent(MDBoxLayout):
+    def __init__(
+        self,
+        properties: list[Property],
+        choose_screen: ChooseSamplePropertyScreen,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.adaptive_height = True
+        self.list = MDList()
+        self.properties = properties
+        self.choose_screen = choose_screen
+        self.add_widget(self.list)
+
+        for pproperty in self.properties:
+            self.list.add_widget(
+                ChooseSamplePropertyElement(pproperty, self.choose_screen)
+            )
+
+
+class ChooseSamplePropertyScreen(MDScreen):
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        profile: XNWPProfile,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "choose_sample_property"
+        self.main_screen = main_screen
+        self.nav_drawer = nav_drawer
+        self.profile = profile
+        self.is_in_person_editor = False
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+
+        top_bar = MDTopAppBar()
+        top_bar.title = "Выберите свойство"
+        top_bar.elevation = 2
+        top_bar.left_action_items = [
+            ["menu", lambda _: self.nav_drawer.set_state("open")]
+        ]
+
+        scroll_view = MDScrollView()
+        self.box = MDGridLayout()
+        self.box.padding = (25, 0, 25, 0)
+        self.box.cols = 1
+        self.box.adaptive_height = True
+        scroll_view.add_widget(self.box)
+
+        box_layout1.add_widget(top_bar)
+        box_layout1.add_widget(scroll_view)
+
+        self.add_widget(box_layout1)
+
+    def change_profile(self, new_profile: XNWPProfile) -> None:
+        self.profile = new_profile
+
+    def update(self, is_in_person_editor: bool) -> ChooseSamplePropertyScreen:
+        self.is_in_person_editor = is_in_person_editor
+        self.box.clear_widgets()
+        for group in self.profile.sample_properties:
+            self.box.add_widget(
+                MDExpansionPanel(
+                    content=PropertiesGroupContent(group[1], self),
+                    panel_cls=MDExpansionPanelOneLine(text=group[0]),
+                )
+            )
+        return self
+
+    def choose_property(self, pproperty: Property) -> None:
+        if self.is_in_person_editor:
+            pass
+        else:
+            self.main_screen.properties_list_screen.adding_sample(pproperty)
+            self.main_screen.screen_manager.current = "properties_list"
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            if self.is_in_person_editor:
+                pass
+            else:
+                self.main_screen.screen_manager.current = "properties_list"
+
+
+class EditPropertyDialog(MDDialog):
+    def __init__(
+        self,
+        pproperty: Optional[Property],
+        properties_screen: PropertiesListScreen,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            title="Редактировать свойство",
+            type="simple",
+            items=[
+                DialogOneLineIconItem(
+                    text="Переместить выше",
+                    icon="arrow-collapse-up",
+                    on_release=lambda x: self.move_up_property(),
+                ),
+                DialogOneLineIconItem(
+                    text="Переместить ниже",
+                    icon="arrow-collapse-down",
+                    on_release=lambda x: self.move_down_property(),
+                ),
+                DialogOneLineIconItem(
+                    text="Копировать в буфер",
+                    icon="content-copy",
+                    on_release=lambda x: self.copy_property(),
+                ),
+                DialogOneLineIconItem(
+                    text="Вырезать свойство",
+                    icon="content-cut",
+                    on_release=lambda x: self.cut_property(),
+                ),
+                DialogOneLineIconItem(
+                    text="Удалить свойство",
+                    icon="delete",
+                    on_release=lambda x: self.remove_property(),
+                ),
+            ],
+            **kwargs,
+        )
+        self.pproperty = pproperty
+        self.properties_screen = properties_screen
+
+    def update_property(self, pproperty: Property) -> EditPropertyDialog:
+        self.pproperty = pproperty
+        return self
+
+    def move_up_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.properties_screen.move_up_property(self.pproperty)
+
+    def move_down_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.properties_screen.move_down_property(self.pproperty)
+
+    def copy_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.properties_screen.cut_property(self.pproperty)
+        self.dismiss()
+
+    def cut_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.properties_screen.cut_property(self.pproperty)
+        self.dismiss()
+
+    def remove_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.properties_screen.remove_property(self.pproperty)
+        self.dismiss()
+
+
+class PropertyElement(TwoLineIconListItem, TouchBehavior):
+    def __init__(
+        self,
+        pproperty: Property,
+        properties_screen: PropertiesListScreen,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.pproperty = pproperty
+        self.properties_screen = properties_screen
+        self.icon_widget = IconLeftWidget(
+            icon=PropertyElement.get_prop_icon(self.pproperty)
+        )
+        self.add_widget(self.icon_widget)
+        self.update(self.pproperty)
+
+    def update(self, pproperty: Optional[Property]) -> None:
+        if pproperty is None:
+            return
+        self.pproperty = pproperty
+        self.text = PropertyElement.get_text(self.pproperty)
+        self.secondary_text = PropertyElement.get_sec_text(self.pproperty)
+        self.icon_widget.icon = PropertyElement.get_prop_icon(self.pproperty)
+
+    @staticmethod
+    def get_text(pproperty: Property) -> str:
+        if pproperty.name == "" or pproperty.name.isspace():
+            return "<Безымянное свойство>"
+        else:
+            return pproperty.name
+
+    @staticmethod
+    def get_sec_text(pproperty: Property) -> str:
+        if pproperty.value == "" or pproperty.value.isspace():
+            return "<Нет значения>"
+        else:
+            return pproperty.value
+
+    @staticmethod
+    def get_prop_icon(pproperty: Property) -> str:
+        if pproperty.icon == "" or pproperty.value.isspace():
+            return "border-none-variant"
+        else:
+            return pproperty.icon
+
+    def on_release(self) -> None:
+        if self.pproperty is None:
+            return
+        self.properties_screen.release_property(self.pproperty)
+
+    def on_long_touch(self, touch: Any, *args: Any) -> None:
+        if self.pproperty is None:
+            return
+        self.properties_screen.edit_property_dialog.update_property(
+            self.pproperty
+        ).open()
+
+
+class PropertiesListScreen(MDScreen):
+    buffer: Optional[Property] = None
+
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        profile: XNWPProfile,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "properties_list"
+        self.main_screen = main_screen
+        self.nav_drawer = nav_drawer
+        self.edit_property_dialog = EditPropertyDialog(None, self)
+        self.profile = profile
+        self.properties_tuple: Optional[tuple[str, list[Property]]] = None
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+
+        self.top_bar = MDTopAppBar()
+        self.top_bar.title = ""
+        self.top_bar.elevation = 2
+        self.top_bar.left_action_items = [
+            ["menu", lambda x: nav_drawer.set_state("open")]
+        ]
+        self.top_bar.right_action_items = [
+            ["content-paste", lambda _: self.paste_property()],
+            ["plus-circle-outline", lambda _: self.add_new_property()],
+            ["plus", lambda _: self.add_sample_property()],
+        ]
+
+        scroll_view = MDScrollView()
+        self.list = MDList()
+        scroll_view.add_widget(self.list)
+        box_layout1.add_widget(self.top_bar)
+        box_layout1.add_widget(scroll_view)
+        self.add_widget(box_layout1)
+
+    def change_profile(self, new_profile: XNWPProfile) -> None:
+        self.profile = new_profile
+        self.properties_tuple = None
+
+    def change_properties(self, properties_tuple: tuple[str, list[Property]]) -> None:
+        if self.properties_tuple != properties_tuple:
+            self.properties_tuple = properties_tuple
+            self.top_bar.title = properties_tuple[0]
+            self.list.clear_widgets()
+            for pproperty in properties_tuple[1]:
+                self.list.add_widget(PropertyElement(pproperty, self))
+            pass
+
+    def paste_property(self) -> None:
+        if PropertiesListScreen.buffer is None:
+            return
+        new_property = copy.deepcopy(PropertiesListScreen.buffer)
+        self.pproperties.append(new_property)
+        self.list.add_widget(
+            PropertyElement(pproperty=new_property, properties_screen=self)
+        )
+
+    @property
+    def pproperties(self) -> list[Property]:
+        if self.properties_tuple is None:
+            return []
+        return self.properties_tuple[1]
+
+    def update_property(self, pproperty: Property) -> None:
+        element_this = self.get_element_of_property(pproperty)
+        element_this.update(pproperty)
+
+    def release_property(self, pproperty: Property) -> None:
+        self.main_screen.property_editor_screen.update(pproperty, False)
+        self.main_screen.screen_manager.current = "property_editor"
+
+    def add_new_property(self) -> None:
+        new_property = Property(
+            name="", generator="", icon="", value="", generator_arguments={}
+        )
+        self.pproperties.append(new_property)
+        self.list.add_widget(
+            PropertyElement(pproperty=new_property, properties_screen=self)
+        )
+
+    def adding_sample(self, pproperty: Property) -> None:
+        new_property = copy.deepcopy(pproperty)
+        self.pproperties.append(new_property)
+        self.list.add_widget(
+            PropertyElement(pproperty=new_property, properties_screen=self)
+        )
+
+    def add_sample_property(self) -> None:
+        if len(self.profile.sample_properties) == 0:
+            return
+        self.main_screen.choose_sample_property_screen.update(False)
+        self.main_screen.screen_manager.current = "choose_sample_property"
+
+    def get_element_of_property(self, pproperty: Property) -> PropertyElement:
+        for list_element in self.list.children[:]:
+            if type(list_element) is PropertyElement:
+                pe: PropertyElement = list_element
+                if pe.pproperty == pproperty:
+                    list_element_of_group = pe
+        return list_element_of_group
+
+    def move_up_property(self, pproperty: Property) -> None:
+        index = self.pproperties.index(pproperty)
+        if index == 0 or len(self.pproperties) < 2:
+            return
+        element_this = self.get_element_of_property(pproperty)
+        swap_index = index - 1
+        swap = self.pproperties[swap_index]
+        element_swap = self.get_element_of_property(swap)
+        element_this.update(swap)
+        element_swap.update(pproperty)
+        self.pproperties.pop(index)
+        self.pproperties.insert(index, swap)
+        self.pproperties.pop(swap_index)
+        self.pproperties.insert(swap_index, pproperty)
+
+    def move_down_property(self, pproperty: Property) -> None:
+        index = self.pproperties.index(pproperty)
+        if index == len(self.pproperties) - 1 or len(self.pproperties) < 2:
+            return
+        element_this = self.get_element_of_property(pproperty)
+        swap_index = index - 1
+        swap = self.pproperties[swap_index]
+        element_swap = self.get_element_of_property(swap)
+        element_this.update(swap)
+        element_swap.update(pproperty)
+        self.pproperties.pop(index)
+        self.pproperties.insert(index, swap)
+        self.pproperties.pop(swap_index)
+        self.pproperties.insert(swap_index, pproperty)
+
+    def copy_property(self, pproperty: Property) -> None:
+        PropertiesListScreen.buffer = copy.deepcopy(pproperty)
+
+    def cut_property(self, pproperty: Property) -> None:
+        PropertiesListScreen.buffer = copy.deepcopy(pproperty)
+        element_this = self.get_element_of_property(pproperty)
+        self.pproperties.remove(pproperty)
+        self.list.remove_widget(element_this)
+
+    def remove_property(self, pproperty: Property) -> None:
+        element_this = self.get_element_of_property(pproperty)
+        self.pproperties.remove(pproperty)
+        self.list.remove_widget(element_this)
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def update_property_count_in_group(self) -> None:
+        if self.properties_tuple is not None:
+            if self.properties_tuple in self.profile.sample_properties:
+                self.main_screen.my_properties_groups_screen.update_properties_count_in_group(
+                    self.properties_tuple
+                )
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+        self.update_property_count_in_group()
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            self.main_screen.screen_manager.current = "sample_properties_groups"
 
 
 # ———————————————————————————————————————————————————————————————————————————
@@ -143,7 +850,7 @@ class EditPropertyGroupDialog(MDDialog):
                 ),
                 DialogOneLineIconItem(
                     text="Удалить группу свойств",
-                    icon="delete",
+                    icon="database-remove",
                     on_release=lambda x: self.remove_property_group(),
                 ),
             ],
@@ -153,9 +860,9 @@ class EditPropertyGroupDialog(MDDialog):
         self.property_screen = property_screen
 
     def update_group(
-        self, property_group: tuple[str, list[Property]]
+        self, ppropertygroup: tuple[str, list[Property]]
     ) -> EditPropertyGroupDialog:
-        self.property_group = property_group
+        self.property_group = ppropertygroup
         return self
 
     def rename_property_group(self) -> None:
@@ -201,8 +908,8 @@ class PropertyGroupElement(TwoLineListItem, TouchBehavior):
         if len(properties) == 0:
             return "В этой группе пока нет свойств"
         ret: str = " ".join(
-            str(property_.name if len(property_.name) > 0 else "")
-            for property_ in properties
+            str(pproperty.name if len(pproperty.name) > 0 else "")
+            for pproperty in properties
         )
         if len(properties) > 3:
             ret += " и другие"
@@ -295,8 +1002,8 @@ class MyPropertiesGroupsScreen(MDScreen):
     def release_property_group(
         self, property_group: tuple[str, list[Property]]
     ) -> None:
-        pass
-        # todo open "property_list"
+        self.main_screen.properties_list_screen.change_properties(property_group)
+        self.main_screen.screen_manager.current = "properties_list"
 
     def rename_property_group(
         self, property_group: tuple[str, list[Property]], new_name: str
@@ -351,7 +1058,7 @@ class MyPropertiesGroupsScreen(MDScreen):
         self.list.remove_widget(element_this)
         self.main_screen.update_groups_count()
 
-    def update_properties_coint_in_group(
+    def update_properties_count_in_group(
         self, property_group: tuple[str, list[Property]]
     ) -> None:
         element_this = self.get_element_of_property_group(property_group)
@@ -473,7 +1180,7 @@ class ChooseSamplePersonScreen(MDScreen):
             self.main_screen.screen_manager.current = "persons_list"
 
 
-class EditPersounDialog(MDDialog):
+class EditPersonDialog(MDDialog):
     def __init__(
         self,
         person: Optional[Person],
@@ -515,7 +1222,7 @@ class EditPersounDialog(MDDialog):
         self.person = person
         self.persons_screen = persons_screen
 
-    def update_person(self, person: Person) -> EditPersounDialog:
+    def update_person(self, person: Person) -> EditPersonDialog:
         self.person = person
         return self
 
@@ -592,7 +1299,7 @@ class PersonElement(ThreeLineListItem, TouchBehavior):
     def on_long_touch(self, touch: Any, *args: Any) -> None:
         if self.person is None:
             return
-        self.person_screen.edit_persoun_dialog.update_person(self.person).open()
+        self.person_screen.edit_person_dialog.update_person(self.person).open()
 
 
 class PersonsListScreen(MDScreen):
@@ -610,7 +1317,7 @@ class PersonsListScreen(MDScreen):
         self.name = "persons_list"
         self.main_screen: MainScreen = main_screen
         self.nav_drawer = nav_drawer
-        self.edit_persoun_dialog = EditPersounDialog(None, self)
+        self.edit_person_dialog = EditPersonDialog(None, self)
         self.profile = profile
         self.persons_tuple: Optional[tuple[str, list[Person]]] = None
         self.ret_point = "my_persons_groups"
@@ -669,7 +1376,6 @@ class PersonsListScreen(MDScreen):
         new_person = copy.deepcopy(PersonsListScreen.buffer)
         self.persons.append(new_person)
         self.list.add_widget(PersonElement(person=new_person, persons_screen=self))
-        pass
 
     def add_new_person(self) -> None:
         new_person = Person(properties=[])
@@ -686,7 +1392,6 @@ class PersonsListScreen(MDScreen):
             return
         self.main_screen.choose_sample_person_screen.update()
         self.main_screen.screen_manager.current = "choose_sample_person"
-        pass
 
     def get_element_of_person(self, person: Person) -> PersonElement:
         for list_element in self.list.children[:]:
@@ -1211,6 +1916,26 @@ class MainScreen(MDScreen):
         )
         self.screen_manager.add_widget(self.my_properties_groups_screen)
 
+        self.properties_list_screen = PropertiesListScreen(
+            self, nav_drawer=navigation_drawer, profile=profile
+        )
+        self.screen_manager.add_widget(self.properties_list_screen)
+
+        self.choose_sample_property_screen = ChooseSamplePropertyScreen(
+            self, nav_drawer=navigation_drawer, profile=profile
+        )
+        self.screen_manager.add_widget(self.choose_sample_property_screen)
+
+        self.property_editor_screen = PropertyEditorScreen(
+            self, nav_drawer=navigation_drawer, profile=profile
+        )
+        self.screen_manager.add_widget(self.property_editor_screen)
+
+        self.generator_settings_screen = GeneratorSettingsScreen(
+            self, navigation_drawer, profile
+        )
+        self.screen_manager.add_widget(self.generator_settings_screen)
+
         self.update_groups_count()
 
     def update_groups_count(self) -> None:
@@ -1227,3 +1952,7 @@ class MainScreen(MDScreen):
         self.person_list_screen.change_profile(new_profile=new_profile)
         self.choose_sample_person_screen.change_profile(new_profile=new_profile)
         self.my_properties_groups_screen.change_profile(new_profile=new_profile)
+        self.properties_list_screen.change_profile(new_profile=new_profile)
+        self.choose_sample_property_screen.change_profile(new_profile=new_profile)
+        self.property_editor_screen.change_profile(new_profile=new_profile)
+        self.generator_settings_screen.change_profile(new_profile=new_profile)
