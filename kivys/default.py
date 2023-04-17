@@ -55,6 +55,20 @@ MDScreen:
                             MDRaisedButton:
                                 text: "Сгенерировать значение"
                                 font_size: 16
+                            MDBoxLayout:
+                                orientation: "horizontal"
+                                spacing: 16
+                                adaptive_height: True
+                                MDTextField:
+                                    icon_left: "android"
+                                    text: "android"
+                                    mode: "rectangle"
+                                    readonly: True
+                                    hint_text: "Иконка свойства"
+                                MDRaisedButton:
+                                    pos_hint: {"center_x": .5, "center_y": .5}
+                                    text: "Сменить иконку"
+                                    font_size: 16
                             MDTextField:
                                 mode: "rectangle"
                                 hint_text: "Генератор"

@@ -31,7 +31,7 @@ from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.toolbar import MDTopAppBar
-from logic import Person, XNWPProfile
+from logic import Person, Property, XNWPProfile
 
 # ———————————————————————————————————————————————————————————————————————————
 # ————————————————————————— Globals —————————————————————————
@@ -48,7 +48,328 @@ class DialogOneLineIconItem(OneLineIconListItem):
 
 
 # ———————————————————————————————————————————————————————————————————————————
-# ————————————————————————— MyPersonsListScreen —————————————————————————
+# ————————————————————————— MyPropertiesGroupsScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class AddNewPropertyGroupDialog(MDDialog):
+    def __init__(
+        self, property_screen: MyPropertiesGroupsScreen, **kwargs: Any
+    ) -> None:
+        super().__init__(
+            title="Добавить группу",
+            buttons=[
+                MDFlatButton(
+                    text="Добавить",
+                    on_release=lambda x: self.add_new_group(),
+                )
+            ],
+            **kwargs,
+        )
+        self.property_screen = property_screen
+
+        self.textfield = MDTextField()
+        self.textfield.padding = [25, 0, 25, 0]
+        # self.spacing = "10dp"
+        self.add_widget(self.textfield)
+
+    def add_new_group(self) -> None:
+        if not self.textfield.text.isspace():
+            self.property_screen.add_new_group(self.textfield.text)
+            self.textfield.text = ""
+        self.dismiss()
+
+
+class RenamePropertyGroupDialog(MDDialog):
+    def __init__(
+        self,
+        property_group: tuple[str, list[Property]],
+        property_screen: MyPropertiesGroupsScreen,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            title="Переименовать группу",
+            buttons=[
+                MDFlatButton(
+                    text="Переименовать",
+                    on_release=lambda x: self.rename_group(),
+                )
+            ],
+            **kwargs,
+        )
+        self.property_screen = property_screen
+        self.property_group = property_group
+
+        self.textfield: MDTextField = MDTextField()
+        self.textfield.padding = [25, 0, 25, 0]
+        self.textfield.text = property_group[0]
+        # self.spacing = "10dp"
+        self.add_widget(self.textfield)
+
+    def rename_group(self) -> None:
+        if not self.textfield.text.isspace():
+            self.property_screen.rename_property_group(
+                self.property_group, self.textfield.text
+            )
+            self.textfield.text = ""
+        self.dismiss()
+
+
+class EditPropertyGroupDialog(MDDialog):
+    def __init__(
+        self,
+        property_group: Optional[tuple[str, list[Property]]],
+        property_screen: MyPropertiesGroupsScreen,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            title="Редактировать группу",
+            type="simple",
+            items=[
+                DialogOneLineIconItem(
+                    text="Переименовать группу",
+                    icon="rename-box",
+                    on_release=lambda x: self.rename_property_group(),
+                ),
+                DialogOneLineIconItem(
+                    text="Переместить выше",
+                    icon="arrow-collapse-up",
+                    on_release=lambda x: self.move_up_property_group(),
+                ),
+                DialogOneLineIconItem(
+                    text="Переместить ниже",
+                    icon="arrow-collapse-down",
+                    on_release=lambda x: self.move_down_property_group(),
+                ),
+                DialogOneLineIconItem(
+                    text="Удалить группу свойств",
+                    icon="delete",
+                    on_release=lambda x: self.remove_property_group(),
+                ),
+            ],
+            **kwargs,
+        )
+        self.property_group = property_group
+        self.property_screen = property_screen
+
+    def update_group(
+        self, property_group: tuple[str, list[Property]]
+    ) -> EditPropertyGroupDialog:
+        self.property_group = property_group
+        return self
+
+    def rename_property_group(self) -> None:
+        if self.property_group is None:
+            return
+        rename_property_group = RenamePropertyGroupDialog(
+            self.property_group, self.property_screen
+        )
+        rename_property_group.open()
+        self.dismiss()
+
+    def move_up_property_group(self) -> None:
+        if self.property_group is None:
+            return
+        self.property_screen.move_up_property_group(self.property_group)
+
+    def move_down_property_group(self) -> None:
+        if self.property_group is None:
+            return
+        self.property_screen.move_down_property_group(self.property_group)
+
+    def remove_property_group(self) -> None:
+        if self.property_group is None:
+            return
+        self.property_screen.remove_property_group(self.property_group)
+        self.dismiss()
+
+
+class PropertyGroupElement(TwoLineListItem, TouchBehavior):
+    def __init__(
+        self,
+        property_group: Optional[tuple[str, list[Property]]],
+        property_screen: MyPropertiesGroupsScreen,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.property_group = property_group
+        self.property_screen = property_screen
+        self.update(self.property_group)
+
+    @staticmethod
+    def get_sec_text(properties: list[Property]) -> str:
+        if len(properties) == 0:
+            return "В этой группе пока нет свойств"
+        ret: str = " ".join(
+            str(property_.name if len(property_.name) > 0 else "")
+            for property_ in properties
+        )
+        if len(properties) > 3:
+            ret += " и другие"
+        return ret
+
+    def update(self, property_group: Optional[tuple[str, list[Property]]]) -> None:
+        if property_group is None:
+            return
+        self.property_group = property_group
+        self.text = property_group[0] + f" ({len(property_group[1])})"
+        self.secondary_text = PropertyGroupElement.get_sec_text(property_group[1])
+
+    def on_release(self) -> None:
+        if self.property_group is None:
+            return
+        self.property_screen.release_property_group(self.property_group)
+
+    def on_long_touch(self, touch: Any, *args: Any) -> None:
+        if self.property_group is None:
+            return
+        self.property_screen.edit_property_group_dialog.update_group(
+            self.property_group
+        ).open()
+
+
+class MyPropertiesGroupsScreen(MDScreen):
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        profile: XNWPProfile,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "sample_properties_groups"
+        self.nav_drawer = nav_drawer
+        self.main_screen = main_screen
+        self.profile = profile
+
+        self.add_new_group_dialog = AddNewPropertyGroupDialog(self)
+        self.edit_property_group_dialog = EditPropertyGroupDialog(None, self)
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+
+        top_bar = MDTopAppBar()
+        top_bar.title = "Мои свойства"
+        top_bar.elevation = 2
+        top_bar.left_action_items = [["menu", lambda x: nav_drawer.set_state("open")]]
+        top_bar.right_action_items = [
+            ["plus", lambda x: self.add_new_group_dialog.open()]
+        ]
+
+        scroll_view = MDScrollView()
+        self.list = MDList()
+        scroll_view.add_widget(self.list)
+        self.change_profile(profile)
+
+        box_layout1.add_widget(top_bar)
+        box_layout1.add_widget(scroll_view)
+        self.add_widget(box_layout1)
+
+    def change_profile(self, new_profile: XNWPProfile) -> None:
+        self.profile = new_profile
+        self.list.clear_widgets()
+        for group in self.profile.sample_properties:
+            self.list.add_widget(
+                PropertyGroupElement(property_group=group, property_screen=self)
+            )
+
+    def add_new_group(self, group_name: str) -> None:
+        new_group: tuple[str, list[Property]] = (group_name, [])
+        self.profile.sample_properties.append(new_group)
+        self.list.add_widget(
+            PropertyGroupElement(property_group=new_group, property_screen=self)
+        )
+        self.main_screen.update_groups_count()
+
+    def get_element_of_property_group(
+        self, property_group: tuple[str, list[Property]]
+    ) -> PropertyGroupElement:
+        for list_element in self.list.children[:]:
+            if type(list_element) is PropertyGroupElement:
+                pge: PropertyGroupElement = list_element
+                if pge.property_group == property_group:
+                    list_element_of_group = pge
+        return list_element_of_group
+
+    def release_property_group(
+        self, property_group: tuple[str, list[Property]]
+    ) -> None:
+        pass
+        # todo open "property_list"
+
+    def rename_property_group(
+        self, property_group: tuple[str, list[Property]], new_name: str
+    ) -> None:
+        index = self.profile.sample_properties.index(property_group)
+        self.profile.sample_properties.remove(property_group)
+        element = self.get_element_of_property_group(property_group)
+        new_group = (new_name, property_group[1])
+        self.profile.sample_properties.insert(index, new_group)
+        element.update(new_group)
+
+    def move_up_property_group(
+        self, property_group: tuple[str, list[Property]]
+    ) -> None:
+        index = self.profile.sample_properties.index(property_group)
+        if index == 0 or len(self.profile.sample_properties) < 2:
+            return
+        element_this = self.get_element_of_property_group(property_group)
+        swap_index = index - 1
+        swap = self.profile.sample_properties[swap_index]
+        element_swap = self.get_element_of_property_group(swap)
+        element_this.update(swap)
+        element_swap.update(property_group)
+        self.profile.sample_properties.pop(index)
+        self.profile.sample_properties.insert(index, swap)
+        self.profile.sample_properties.pop(swap_index)
+        self.profile.sample_properties.insert(swap_index, property_group)
+
+    def move_down_property_group(
+        self, property_group: tuple[str, list[Property]]
+    ) -> None:
+        index = self.profile.sample_properties.index(property_group)
+        if (
+            index == len(self.profile.sample_properties) - 1
+            or len(self.profile.sample_properties) < 2
+        ):
+            return
+        element_this = self.get_element_of_property_group(property_group)
+        swap_index = index - 1
+        swap = self.profile.sample_properties[swap_index]
+        element_swap = self.get_element_of_property_group(swap)
+        element_this.update(swap)
+        element_swap.update(property_group)
+        self.profile.sample_properties.pop(index)
+        self.profile.sample_properties.insert(index, swap)
+        self.profile.sample_properties.pop(swap_index)
+        self.profile.sample_properties.insert(swap_index, property_group)
+
+    def remove_property_group(self, property_group: tuple[str, list[Property]]) -> None:
+        element_this = self.get_element_of_property_group(property_group)
+        self.profile.sample_properties.remove(property_group)
+        self.list.remove_widget(element_this)
+        self.main_screen.update_groups_count()
+
+    def update_properties_coint_in_group(
+        self, property_group: tuple[str, list[Property]]
+    ) -> None:
+        element_this = self.get_element_of_property_group(property_group)
+        element_this.update(property_group)
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            Window.close()
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— PersonsListScreen —————————————————————————
 # ———————————————————————————————————————————————————————————————————————————
 
 
@@ -122,6 +443,9 @@ class ChooseSamplePersonScreen(MDScreen):
         box_layout1.add_widget(scroll_view)
 
         self.add_widget(box_layout1)
+
+    def change_profile(self, new_profile: XNWPProfile) -> None:
+        self.profile = new_profile
 
     def update(self) -> ChooseSamplePersonScreen:
         self.box.clear_widgets()
@@ -312,6 +636,10 @@ class PersonsListScreen(MDScreen):
         box_layout1.add_widget(self.top_bar)
         box_layout1.add_widget(scroll_view)
         self.add_widget(box_layout1)
+
+    def change_profile(self, new_profile: XNWPProfile) -> None:
+        self.profile = new_profile
+        self.persons_tuple = None
 
     @property
     def persons(self) -> list[Person]:
@@ -661,10 +989,10 @@ class MyPersonsGroupsScreen(MDScreen):
     def get_persons(self, profile: XNWPProfile) -> list[tuple[str, list[Person]]]:
         return profile.persons
 
-    def change_profile(self, profile: XNWPProfile) -> None:
-        self.profile = profile
+    def change_profile(self, new_profile: XNWPProfile) -> None:
+        self.profile = new_profile
         self.list.clear_widgets()
-        for group in self.get_persons(profile):
+        for group in self.get_persons(new_profile):
             self.list.add_widget(
                 PersonGroupElement(person_group=group, person_screen=self)
             )
@@ -844,6 +1172,13 @@ class MainScreen(MDScreen):
             on_release=change_screen("sample_persons_groups"),
         )
         nav_menu.add_widget(self.sample_persons_click)
+        self.sample_properties_click = DrawerClickableItem(
+            text="Мои свойства",
+            icon="database",
+            right_text="200",
+            on_release=change_screen("sample_properties_groups"),
+        )
+        nav_menu.add_widget(self.sample_properties_click)
         nav_menu.add_widget(MDNavigationDrawerDivider())
         nav_menu.add_widget(DrawerLabelItem(icon="information-outline", text="1.0.0"))
 
@@ -871,22 +1206,24 @@ class MainScreen(MDScreen):
         )
         self.screen_manager.add_widget(self.choose_sample_person_screen)
 
+        self.my_properties_groups_screen = MyPropertiesGroupsScreen(
+            self, nav_drawer=navigation_drawer, profile=profile
+        )
+        self.screen_manager.add_widget(self.my_properties_groups_screen)
+
         self.update_groups_count()
 
     def update_groups_count(self) -> None:
         self.my_persons_click.right_text = str(len(self.profile.persons))
         self.sample_persons_click.right_text = str(len(self.profile.sample_persons))
+        self.sample_properties_click.right_text = str(
+            len(self.profile.sample_properties)
+        )
 
     def change_profile(self, new_profile: XNWPProfile) -> None:
-        # todo
-        pass
-
-    # def on_enter(self, *args: Any) -> None:
-    #     Window.bind(on_keyboard=self.keypress)
-
-    # def on_pre_leave(self, *args: Any) -> None:
-    #     Window.unbind(on_keyboard=self.keypress)
-
-    # def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
-    #     if key == 27:
-    #         Window.close()
+        self.profile = new_profile
+        self.my_persons_groups_screen.change_profile(new_profile=new_profile)
+        self.sample_persons_groups_screen.change_profile(new_profile=new_profile)
+        self.person_list_screen.change_profile(new_profile=new_profile)
+        self.choose_sample_person_screen.change_profile(new_profile=new_profile)
+        self.my_properties_groups_screen.change_profile(new_profile=new_profile)
