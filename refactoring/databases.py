@@ -7,6 +7,30 @@ from logic import XNWPProfile
 from pydantic import BaseModel
 
 
+class Dataset(BaseModel):
+    """Представляет набор данных, предоставляемых для генераторов"""
+
+    name: str
+    """Внутреннее имя набора данных"""
+    description: str
+    """Текстовое описание набора данных"""
+    content: list[str]
+    """Содержимое набора данных"""
+
+
+class Datalist(BaseModel):
+    """Представляет файл, содержащий множество именованных наборов данных"""
+
+    filename: str
+    """Имя файла"""
+    name: str
+    """Имя списка данных"""
+    description: str
+    """Описание списка данных"""
+    datasets: list[Dataset]
+    """Наборы данных"""
+
+
 class Database(BaseModel):
     """Представляет сериализуемый набор файлов как базу данных"""
 
@@ -17,7 +41,9 @@ class Database(BaseModel):
         if not os.path.exists(directory):
             os.makedirs(directory)
         for file in self.files:
-            with open(os.path.join(directory, file.filename), "w+") as write_file:
+            with open(
+                os.path.join(directory, file.filename), "w+", encoding="utf_8"
+            ) as write_file:
                 json.dump(
                     file.dict(),
                     write_file,
@@ -39,29 +65,9 @@ class Database(BaseModel):
         if not os.path.exists(path):
             return Database(files=files)
         for file in Database.get_files(path):
-            with open(os.path.join(path, file), "r") as read_file:
-                files.append(Datalist.from_json(read_file.read()))  # type: ignore
+            with open(os.path.join(path, file), "r", encoding="utf_8") as read_file:
+                files.append(Datalist.parse_obj(json.load(read_file)))
         return Database(files=files)
-
-
-class Datalist(BaseModel):
-    """Представляет файл, содержащий множество именованных наборов данных"""
-
-    filename: str
-    """Имя файла"""
-    datasets: list[Dataset]
-    """Наборы данных"""
-
-
-class Dataset(BaseModel):
-    """Представляет набор данных, предоставляемых для генераторов"""
-
-    name: str
-    """Внутреннее имя набора данных"""
-    description: str
-    """Текстовое описание набора данных"""
-    content: list[str]
-    """Содержимое набора данных"""
 
 
 default_dbfiles: Database
@@ -77,6 +83,8 @@ def create() -> None:
         files=[
             Datalist(
                 filename="names.json",
+                name="Имена",
+                description="Содержит наборы данных с именами",
                 datasets=[
                     Dataset(
                         name="rus_male_names",
@@ -88,6 +96,18 @@ def create() -> None:
         ]
     )
     user_dbfiles = Database(files=[])
+
+
+def get_all_datalists() -> list[Datalist]:
+    """Скомпоновывает базы данных по умолчанию и пользовательские
+    в единый комплекс данных.
+    """
+    global default_dbfiles
+    global user_dbfiles
+    ret: list[Datalist] = []
+    ret.extend(default_dbfiles.files)
+    ret.extend(user_dbfiles.files)
+    return ret
 
 
 def save() -> None:

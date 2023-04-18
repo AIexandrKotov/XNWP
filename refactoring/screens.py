@@ -3,19 +3,25 @@ from __future__ import annotations
 import copy
 from typing import Any, Callable, Optional
 
+from databases import Dataset, get_all_datalists
 from generators import Generators
 from kivy.core.window import Window
 from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDTextButton
+from kivymd.uix.button import MDFlatButton, MDIconButton, MDRaisedButton, MDTextButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
+from kivymd.uix.expansionpanel import (
+    MDExpansionPanel,
+    MDExpansionPanelOneLine,
+    MDExpansionPanelTwoLine,
+)
 from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.list import (
     IconLeftWidget,
     MDList,
     OneLineIconListItem,
+    OneLineListItem,
     ThreeLineListItem,
     TwoLineIconListItem,
     TwoLineListItem,
@@ -53,7 +59,9 @@ class DialogOneLineIconItem(OneLineIconListItem):
 
 
 class LabelCheckbox(MDBoxLayout):
-    def __init__(self, text: str, active: bool, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, text: str, active: bool = False, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.checkbox = MDCheckbox(
             size_hint=(None, None),
@@ -75,6 +83,207 @@ class LabelCheckbox(MDBoxLayout):
 
 
 # ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— ChooseIconScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class SearchIconButton(MDRaisedButton):
+    def __init__(
+        self, choose_screen: ChooseIconScreen, *args: Any, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.choose_screen = choose_screen
+        self.text = "Искать"
+        self.font_size = 16
+        self.pos_hint = {"center_x": 0, "center_y": 0.5}
+
+    def on_release(self) -> None:
+        self.choose_screen.search()
+
+
+class ChooseIconElement(MDIconButton):
+    def __init__(
+        self, icon: str, choose_screen: ChooseIconScreen, *args: Any, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.icon = icon
+        self.choose_screen = choose_screen
+
+    def on_release(self) -> None:
+        self.choose_screen.choose_icon(self.icon)
+
+
+class ChooseIconScreen(MDScreen):
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "choose_icon"
+        self.main_screen = main_screen
+        self.nav_drawer = nav_drawer
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+
+        top_bar = MDTopAppBar()
+        top_bar.title = "Найдите нужную иконку"
+        top_bar.elevation = 2
+        top_bar.left_action_items = [
+            ["menu", lambda _: self.nav_drawer.set_state("open")]
+        ]
+
+        scroll_view = MDScrollView()
+        self.box = MDGridLayout()
+        self.box.padding = (25, 0, 25, 0)
+        self.box.cols = 8
+        scroll_view.add_widget(self.box)
+
+        box_layout2 = MDBoxLayout()
+        box_layout2.spacing = 25
+        box_layout2.padding = 25, 10, 25, 10
+        box_layout2.adaptive_height = True
+        box_layout2.orientation = "horizontal"
+        self.icon_text_field = MDTextField(
+            hint_text="Название иконки", mode="rectangle"
+        )
+        box_layout2.add_widget(self.icon_text_field)
+        box_layout2.add_widget(SearchIconButton(self))  # todo add search button
+
+        box_layout1.add_widget(top_bar)
+        box_layout1.add_widget(box_layout2)
+        box_layout1.add_widget(scroll_view)
+        self.add_widget(box_layout1)
+
+    def search(self) -> None:
+        from kivymd.icon_definitions import md_icons
+
+        self.box.clear_widgets()
+        count = 0
+        for icon in md_icons.keys():
+            if self.icon_text_field.text in icon:
+                count += 1
+                self.box.add_widget(ChooseIconElement(icon, self))
+                if count >= 24:
+                    return
+
+    def choose_icon(self, icon: str) -> None:
+        self.main_screen.property_editor_screen.changing_icon(icon)
+        self.main_screen.screen_manager.current = "property_editor"
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            self.main_screen.screen_manager.current = "property_editor"
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— DigitGeneratorSettingsScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class ChooseDatasetElement(TwoLineListItem):
+    def __init__(
+        self, dataset: Dataset, choose_screen: ChooseDatabaseScreen, **kwargs: Any
+    ) -> None:
+        super().__init__(**kwargs)
+        self.dataset = dataset
+        self.choose_screen = choose_screen
+        self.text = dataset.description
+        self.secondary_text = dataset.name
+
+    def on_release(self) -> None:
+        self.choose_screen.choose_dataset(self.dataset)
+
+
+class DatasetsGroupContent(MDBoxLayout):
+    def __init__(
+        self,
+        datasets: list[Dataset],
+        choose_screen: ChooseDatabaseScreen,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.adaptive_height = True
+        self.list = MDList()
+        self.datasets = datasets
+        self.choose_screen = choose_screen
+        self.add_widget(self.list)
+
+        for dataset in self.datasets:
+            self.list.add_widget(ChooseDatasetElement(dataset, self.choose_screen))
+
+
+class ChooseDatabaseScreen(MDScreen):
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "choose_database"
+        self.main_screen = main_screen
+        self.nav_drawer = nav_drawer
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+
+        top_bar = MDTopAppBar()
+        top_bar.title = "Выберите базу данных"
+        top_bar.elevation = 2
+        top_bar.left_action_items = [
+            ["menu", lambda _: self.nav_drawer.set_state("open")]
+        ]
+
+        scroll_view = MDScrollView()
+        self.box = MDGridLayout()
+        self.box.padding = (25, 0, 25, 0)
+        self.box.cols = 1
+        self.box.adaptive_height = True
+        scroll_view.add_widget(self.box)
+
+        box_layout1.add_widget(top_bar)
+        box_layout1.add_widget(scroll_view)
+
+        self.add_widget(box_layout1)
+
+        for datalist in get_all_datalists():
+            self.box.add_widget(
+                MDExpansionPanel(
+                    content=DatasetsGroupContent(datalist.datasets, self),
+                    panel_cls=MDExpansionPanelTwoLine(
+                        text=datalist.name, secondary_text=datalist.description
+                    ),
+                )
+            )
+
+    def choose_dataset(self, dataset: Dataset) -> None:
+        self.main_screen.generator_settings_screen.choosing_dataset(dataset)
+        self.main_screen.screen_manager.current = "generator_settings"
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            self.main_screen.screen_manager.current = "generator_settings"
+
+
+# ———————————————————————————————————————————————————————————————————————————
 # ————————————————————————— Generators Screens —————————————————————————
 # ———————————————————————————————————————————————————————————————————————————
 
@@ -87,6 +296,24 @@ class ISettingsScreen:
     def update_screen(self, pproperty: Property) -> None:
         """Обновить графические представление исходя из этого свойства"""
         pass
+
+
+class ChooseDatasetButton(MDRaisedButton):
+    def __init__(
+        self, settings_screen: GeneratorSettingsScreen, *args: Any, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.settings_screen = settings_screen
+        self.text = "Выбрать другую"
+        self.font_size = 16
+
+    def on_release(self) -> None:
+        self.settings_screen.choose_dataset()
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— DigitGeneratorSettingsScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
 
 
 class DigitGeneratorSettingsScreen(MDScreen, ISettingsScreen):
@@ -121,6 +348,373 @@ class DigitGeneratorSettingsScreen(MDScreen, ISettingsScreen):
     def update_screen(self, pproperty: Property) -> None:
         self.lower_text_field.text = str(pproperty.generator_arguments["lower"])
         self.upper_text_field.text = str(pproperty.generator_arguments["upper"])
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— ChooseGeneratorSettingsScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class ChooseGSElement(OneLineListItem, TouchBehavior):
+    def __init__(
+        self,
+        line: str,
+        choose_screen: ChooseGeneratorSettingsScreen,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.choose_screen = choose_screen
+        self.text = line
+
+    def on_release(self) -> None:
+        self.choose_screen.remove_value(self, self.text)
+
+
+class AddChooseGSElement(OneLineIconListItem, TouchBehavior):
+    static_element: Optional[AddChooseGSElement] = None
+
+    def __init__(
+        self, choose_screen: ChooseGeneratorSettingsScreen, *args: Any, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.choose_screen = choose_screen
+        self.add_widget(IconLeftWidget(icon="plus"))
+        self.text = "Добавить значение"
+        AddChooseGSElement.static_element = self
+
+    def on_release(self) -> None:
+        self.choose_screen.add_value()
+
+
+class AddNewValueChooseGSDialog(MDDialog):
+    def __init__(
+        self, choose_screen: ChooseGeneratorSettingsScreen, **kwargs: Any
+    ) -> None:
+        super().__init__(
+            title="Добавить значение",
+            buttons=[
+                MDFlatButton(
+                    text="Добавить",
+                    on_release=lambda x: self.add_new_value(),
+                )
+            ],
+            **kwargs,
+        )
+        self.choose_screen: ChooseGeneratorSettingsScreen = choose_screen
+
+        self.textfield = MDTextField()
+        self.textfield.padding = [25, 0, 25, 0]
+        # self.spacing = "10dp"
+        self.add_widget(self.textfield)
+
+    def add_new_value(self) -> None:
+        if not self.textfield.text.isspace():
+            self.choose_screen.adding_value(self.textfield.text)
+            self.textfield.text = ""
+        self.dismiss()
+
+
+class ChooseGeneratorSettingsScreen(MDScreen, ISettingsScreen):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        AddChooseGSElement(self)
+        self.name = str(Generators.choose_generator)
+        self.add_new_value_dialog = AddNewValueChooseGSDialog(self)
+
+        self.grid = MDGridLayout()
+        self.grid.cols = 1
+        self.grid.spacing = 25
+        self.grid.padding = 25, 25, 25, 25
+        self.grid.add_widget(
+            MDLabel(
+                text="Генератор вернёт одно из следующих значений"
+                + ". Одинаковые значения не поддерживаются."
+                + " Нельзя удалить последний элемент.",
+                adaptive_height=True,
+            )
+        )
+        scroll_view = MDScrollView()
+        self.list = MDList()
+        self.native_list: list[str] = []
+        scroll_view.add_widget(self.list)
+        self.grid.add_widget(scroll_view)
+        self.add_widget(self.grid)
+
+    def adding_value(self, value: str) -> None:
+        if value in self.native_list:
+            return
+        self.native_list.append(value)
+        self.list.remove_widget(AddChooseGSElement.static_element)
+        self.list.add_widget(ChooseGSElement(value, self))
+        self.list.add_widget(AddChooseGSElement.static_element)
+
+    def add_value(self) -> None:
+        self.add_new_value_dialog.open()
+
+    def remove_value(self, element: ChooseGSElement, value: str) -> None:
+        if len(self.native_list) <= 1:
+            return
+        self.native_list.remove(value)
+        self.list.remove_widget(element)
+
+    def update_arguments(self, pproperty: Property) -> None:
+        pproperty.generator_arguments["chooses"] = self.native_list
+
+    def update_screen(self, pproperty: Property) -> None:
+        self.native_list = pproperty.generator_arguments["chooses"]
+        self.list.clear_widgets()
+        for line in pproperty.generator_arguments["chooses"]:
+            self.list.add_widget(ChooseGSElement(line, self))
+        self.list.add_widget(AddChooseGSElement.static_element)
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— RanameGeneratorSettingsScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class RanameGSElement(OneLineListItem, TouchBehavior):
+    def __init__(
+        self,
+        line: str,
+        raname_screen: RanameGeneratorSettingsScreen,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.raname_screen = raname_screen
+        self.text = line
+
+    def on_release(self) -> None:
+        self.raname_screen.remove_value(self, self.text)
+
+
+class AddRanameGSElement(OneLineIconListItem, TouchBehavior):
+    static_element: Optional[AddRanameGSElement] = None
+
+    def __init__(
+        self, raname_screen: RanameGeneratorSettingsScreen, *args: Any, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.raname_screen = raname_screen
+        self.add_widget(IconLeftWidget(icon="plus"))
+        self.text = "Добавить значение"
+        AddRanameGSElement.static_element = self
+
+    def on_release(self) -> None:
+        self.raname_screen.add_value()
+
+
+class AddNewValueRanameGSDialog(MDDialog):
+    def __init__(
+        self, raname_screen: RanameGeneratorSettingsScreen, **kwargs: Any
+    ) -> None:
+        super().__init__(
+            title="Добавить значение",
+            buttons=[
+                MDFlatButton(
+                    text="Добавить",
+                    on_release=lambda x: self.add_new_value(),
+                )
+            ],
+            **kwargs,
+        )
+        self.raname_screen: RanameGeneratorSettingsScreen = raname_screen
+
+        self.textfield = MDTextField()
+        self.textfield.padding = [25, 0, 25, 0]
+        # self.spacing = "10dp"
+        self.add_widget(self.textfield)
+
+    def add_new_value(self) -> None:
+        if not self.textfield.text.isspace():
+            self.raname_screen.adding_value(self.textfield.text)
+            self.textfield.text = ""
+        self.dismiss()
+
+
+class RanameGeneratorSettingsScreen(MDScreen, ISettingsScreen):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        AddRanameGSElement(self)
+        self.name = str(Generators.raname_generator)
+        self.add_new_value_dialog = AddNewValueRanameGSDialog(self)
+
+        self.grid = MDGridLayout()
+        self.grid.cols = 1
+        self.grid.spacing = 25
+        self.grid.padding = 25, 25, 25, 25
+        self.grid.add_widget(
+            MDLabel(
+                text="Генератор вернёт случайное слово,"
+                + " составленное из следующих значений"
+                + ". Одинаковые значения не поддерживаются."
+                + " Нельзя удалить последний элемент.",
+                adaptive_height=True,
+            )
+        )
+        self.min_depth_text_field = MDTextField(
+            mode="rectangle", hint_text="Минимальная глубина"
+        )
+        self.max_depth_text_field = MDTextField(
+            mode="rectangle", hint_text="Максимальная глубина"
+        )
+        self.only_center_checkbox = LabelCheckbox("Только центральные")
+        self.grid.add_widget(self.min_depth_text_field)
+        self.grid.add_widget(self.max_depth_text_field)
+        self.grid.add_widget(self.only_center_checkbox)
+
+        scroll_view = MDScrollView()
+        self.list = MDList()
+        self.native_list: list[str] = []
+        scroll_view.add_widget(self.list)
+        self.grid.add_widget(scroll_view)
+        self.add_widget(self.grid)
+
+    def adding_value(self, value: str) -> None:
+        if value in self.native_list:
+            return
+        self.native_list.append(value)
+        self.list.remove_widget(AddRanameGSElement.static_element)
+        self.list.add_widget(RanameGSElement(value, self))
+        self.list.add_widget(AddRanameGSElement.static_element)
+
+    def add_value(self) -> None:
+        self.add_new_value_dialog.open()
+
+    def remove_value(self, element: RanameGSElement, value: str) -> None:
+        if len(self.native_list) <= 1:
+            return
+        self.native_list.remove(value)
+        self.list.remove_widget(element)
+
+    def update_arguments(self, pproperty: Property) -> None:
+        pproperty.generator_arguments["chooses"] = self.native_list
+        pproperty.generator_arguments["min_depth"] = int(self.min_depth_text_field.text)
+        pproperty.generator_arguments["max_depth"] = int(self.max_depth_text_field.text)
+        pproperty.generator_arguments["only_center"] = bool(
+            self.only_center_checkbox.checkbox.active
+        )
+
+    def update_screen(self, pproperty: Property) -> None:
+        self.min_depth_text_field.text = str(pproperty.generator_arguments["min_depth"])
+        self.max_depth_text_field.text = str(pproperty.generator_arguments["max_depth"])
+        self.only_center_checkbox.checkbox.active = bool(
+            pproperty.generator_arguments["only_center"]
+        )
+        self.native_list = pproperty.generator_arguments["chooses"]
+        self.list.clear_widgets()
+        for line in pproperty.generator_arguments["chooses"]:
+            self.list.add_widget(RanameGSElement(line, self))
+        self.list.add_widget(AddRanameGSElement.static_element)
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— ChooseDatabaseGeneratorSettingsScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class ChooseDatabaseGeneratorSettingsScreen(MDScreen, ISettingsScreen):
+    def __init__(
+        self, settings_screen: GeneratorSettingsScreen, *args: Any, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = str(Generators.db_choose_generator)
+        self.settings_screen = settings_screen
+
+        self.grid = MDGridLayout()
+        self.grid.cols = 1
+        self.grid.spacing = 25
+        self.grid.padding = 25, 25, 25, 25
+        self.grid.add_widget(
+            MDLabel(
+                text="Генератор вернёт одно из значений из " + "базы данных ",
+                adaptive_height=True,
+            )
+        )
+        self.db_name_text_field = MDTextField(
+            mode="rectangle", hint_text="Название базы данных"
+        )
+        self.grid.add_widget(self.db_name_text_field)
+        self.grid.add_widget(ChooseDatasetButton(self))
+        self.add_widget(self.grid)
+
+    def update_arguments(self, pproperty: Property) -> None:
+        pproperty.generator_arguments["db_name"] = str(self.db_name_text_field.text)
+
+    def update_screen(self, pproperty: Property) -> None:
+        self.db_name_text_field.text = str(pproperty.generator_arguments["db_name"])
+
+    def choose_dataset(self) -> None:
+        self.settings_screen.choose_dataset()
+
+    def choosing_dataset(self, dataset: Dataset) -> None:
+        self.db_name_text_field.text = dataset.name
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— RanameDatabaseGeneratorSettingsScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class RanameDatabaseGeneratorSettingsScreen(MDScreen, ISettingsScreen):
+    def __init__(
+        self, settings_screen: GeneratorSettingsScreen, *args: Any, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = str(Generators.db_raname_generator)
+        self.settings_screen = settings_screen
+
+        self.grid = MDGridLayout()
+        self.grid.cols = 1
+        self.grid.spacing = 25
+        self.grid.padding = 25, 25, 25, 25
+        self.grid.add_widget(
+            MDLabel(
+                text="Генератор сгенерирует случайное слово на"
+                + " основе значений из базы данных ",
+                adaptive_height=True,
+            )
+        )
+        self.db_name_text_field = MDTextField(
+            mode="rectangle", hint_text="Название базы данных"
+        )
+        self.min_depth_text_field = MDTextField(
+            mode="rectangle", hint_text="Минимальная глубина"
+        )
+        self.max_depth_text_field = MDTextField(
+            mode="rectangle", hint_text="Максимальная глубина"
+        )
+        self.only_center_checkbox = LabelCheckbox("Только центральные")
+        self.grid.add_widget(self.db_name_text_field)
+        self.grid.add_widget(ChooseDatasetButton(self))
+        self.grid.add_widget(self.min_depth_text_field)
+        self.grid.add_widget(self.max_depth_text_field)
+        self.grid.add_widget(self.only_center_checkbox)
+        self.add_widget(self.grid)
+
+    def update_arguments(self, pproperty: Property) -> None:
+        pproperty.generator_arguments["db_name"] = str(self.db_name_text_field.text)
+        pproperty.generator_arguments["min_depth"] = int(self.min_depth_text_field.text)
+        pproperty.generator_arguments["max_depth"] = int(self.max_depth_text_field.text)
+        pproperty.generator_arguments["only_center"] = bool(
+            self.only_center_checkbox.checkbox.active
+        )
+
+    def update_screen(self, pproperty: Property) -> None:
+        self.db_name_text_field.text = str(pproperty.generator_arguments["db_name"])
+        self.min_depth_text_field.text = str(pproperty.generator_arguments["min_depth"])
+        self.max_depth_text_field.text = str(pproperty.generator_arguments["max_depth"])
+        self.only_center_checkbox.checkbox.active = bool(
+            pproperty.generator_arguments["only_center"]
+        )
+
+    def choose_dataset(self) -> None:
+        self.settings_screen.choose_dataset()
+
+    def choosing_dataset(self, dataset: Dataset) -> None:
+        self.db_name_text_field.text = dataset.name
 
 
 # ———————————————————————————————————————————————————————————————————————————
@@ -281,20 +875,24 @@ class GeneratorSettingsScreen(MDScreen):
         box_layout1 = MDBoxLayout()
         box_layout1.orientation = "vertical"
 
-        top_bar = MDTopAppBar()
-        top_bar.title = "Настройки генератора"
-        top_bar.elevation = 2
-        top_bar.left_action_items = [
+        self.top_bar = MDTopAppBar()
+        self.top_bar.title = "Настройки генератора"
+        self.top_bar.elevation = 2
+        self.top_bar.left_action_items = [
             ["menu", lambda _: self.nav_drawer.set_state("open")]
         ]
-        top_bar.right_action_items = [
+        self.top_bar.right_action_items = [
             ["recycle-variant", lambda _: self.set_to_default()]
         ]
 
         self.screen_manager = MDScreenManager()
         self.screen_manager.add_widget(DigitGeneratorSettingsScreen())
+        self.screen_manager.add_widget(ChooseGeneratorSettingsScreen())
+        self.screen_manager.add_widget(RanameGeneratorSettingsScreen())
+        self.screen_manager.add_widget(ChooseDatabaseGeneratorSettingsScreen(self))
+        self.screen_manager.add_widget(RanameDatabaseGeneratorSettingsScreen(self))
 
-        box_layout1.add_widget(top_bar)
+        box_layout1.add_widget(self.top_bar)
         box_layout1.add_widget(self.screen_manager)
         self.add_widget(box_layout1)
 
@@ -302,6 +900,27 @@ class GeneratorSettingsScreen(MDScreen):
         if isinstance(self.screen_manager.current_screen, ISettingsScreen):
             return self.screen_manager.current_screen
         return ISettingsScreen()
+
+    def choosing_dataset(self, dataset: Dataset) -> None:
+        if (
+            type(self.screen_manager.current_screen)
+            is ChooseDatabaseGeneratorSettingsScreen
+        ):
+            cdgss: ChooseDatabaseGeneratorSettingsScreen = (
+                self.screen_manager.current_screen
+            )
+            cdgss.choosing_dataset(dataset)
+        if (
+            type(self.screen_manager.current_screen)
+            is RanameDatabaseGeneratorSettingsScreen
+        ):
+            rdgss: RanameDatabaseGeneratorSettingsScreen = (
+                self.screen_manager.current_screen
+            )
+            rdgss.choosing_dataset(dataset)
+
+    def choose_dataset(self) -> None:
+        self.main_screen.screen_manager.current = "choose_database"
 
     def set_to_default(self) -> None:
         if self.pproperty is None:
@@ -523,10 +1142,14 @@ class PropertyEditorScreen(MDScreen):
             self.value_text_field.text = self.pproperty.value
 
     def changing_icon(self, icon: str) -> None:
-        pass
+        if self.pproperty is None:
+            return
+        self.pproperty.icon = icon
+        self.icon_text_field.text = icon
+        self.icon_text_field.icon_left = icon
 
     def change_icon(self) -> None:
-        pass
+        self.main_screen.screen_manager.current = "choose_icon"
 
     def open_generator_settings(self) -> None:
         if self.pproperty is None:
@@ -1869,7 +2492,7 @@ class PersonGroupElement(TwoLineListItem, TouchBehavior):
                 if len(person.properties) > 0 and len(person.properties[0][1]) > 0
                 else ""
             )
-            for person in persons[:3]
+            for person in persons[:2]
         )
         if len(persons) > 3:
             ret += " и другие"
@@ -2186,6 +2809,12 @@ class MainScreen(MDScreen):
             navigation_drawer,
         )
         self.screen_manager.add_widget(self.choose_generator_screen)
+
+        self.choose_database_screen = ChooseDatabaseScreen(self, navigation_drawer)
+        self.screen_manager.add_widget(self.choose_database_screen)
+
+        self.choose_icon_screen = ChooseIconScreen(self, navigation_drawer)
+        self.screen_manager.add_widget(self.choose_icon_screen)
 
         self.update_groups_count()
 

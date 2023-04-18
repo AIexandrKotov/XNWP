@@ -1,6 +1,7 @@
 import os
 from typing import Any
 
+import databases
 from kivy.config import Config
 from kivymd.app import MDApp
 from kivymd.uix.screenmanager import MDScreenManager
@@ -23,6 +24,7 @@ class MainApp(MDApp):
         self.profile.savefile(os.path.join("bin", "default.json"))
 
 
+databases.load()
 Config.set("kivy", "exit_on_escape", "0")
 profile = XNWPProfile.loadfile(os.path.join("bin", "default.json"))
 MainApp(profile).run()

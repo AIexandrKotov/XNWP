@@ -72,7 +72,7 @@ class DigitGenerator(AbstractGenerator):
 @dataclass
 class ChooseGenerator(AbstractGenerator):
     def get_next(  # type: ignore
-        self, /, *args: tuple, chooses: list[Any], **kwargs: dict[str, Any]
+        self, /, *args: tuple, chooses: list[str], **kwargs: dict[str, Any]
     ) -> Any:
         return self.random.choice(chooses)
 
@@ -81,7 +81,7 @@ class ChooseGenerator(AbstractGenerator):
 
     def get_help(self) -> str:
         return """
-            ChooseGenerator(chooses: list[Any]) -> Any
+            ChooseGenerator(chooses: list[str]) -> Any
             '''Returns random element from non-empty list'''
         """
 
@@ -181,6 +181,31 @@ class RanameDatabaseGenerator(AbstractGenerator, Raname):
                 only_center: bool
             ) -> str
             '''Returns random generated string based on depth strings from database'''
+        """
+
+
+@dataclass
+class JoinDatabaseGenerator(AbstractGenerator):
+    def get_next(  # type: ignore
+        self,
+        /,
+        *args: tuple,
+        separator: str,
+        db_names: list[str],
+        **kwargs: dict[str, Any],
+    ) -> Any:
+        return separator.join(
+            self.random.choice(databases.get_content_by_name(db_name))
+            for db_name in db_names
+        )
+
+    def get_default(self) -> dict[str, Any]:
+        return {"separator": " ", "db_names": ["default"]}
+
+    def get_help(self) -> str:
+        return """
+            DatabaseConcatGenerator(db_name: str) -> str
+            '''Returns random str from data base'''
         """
 
 

@@ -48,7 +48,7 @@ class XNWPProfile(BaseModel):
         )
 
     def savefile(self, path: str) -> None:
-        with open(path, "w") as wf:
+        with open(path, "w", encoding="utf_8") as wf:
             json.dump(
                 self.dict(),
                 wf,
@@ -63,5 +63,5 @@ class XNWPProfile(BaseModel):
 
     @staticmethod
     def loadfile(path: str) -> XNWPProfile:
-        with open(path, "r") as rf:
+        with open(path, "r", encoding="utf_8") as rf:
             return XNWPProfile.parse_obj(json.load(rf))  # type: ignore

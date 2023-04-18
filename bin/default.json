@@ -7,8 +7,12 @@
     ],
     "persons": [
         [
-            "��� ���� ����� ������",
-            []
+            "Ещё одна новая группа",
+            [
+                {
+                    "properties": []
+                }
+            ]
         ],
         [
             "default",
@@ -17,22 +21,54 @@
     ],
     "sample_persons": [
         [
-            "�����������",
-            []
+            "Изначальные",
+            [
+                {
+                    "properties": []
+                },
+                {
+                    "properties": []
+                },
+                {
+                    "properties": []
+                },
+                {
+                    "properties": []
+                }
+            ]
         ]
     ],
     "sample_properties": [
         [
-            "default",
+            "Основные",
             [
                 {
-                    "generator": "DBChooseGenerator",
-                    "generator_arguments": {
-                        "db_name": "rus_male_names"
-                    },
-                    "icon": "",
-                    "name": "",
-                    "value": ""
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "remove",
+                    "name": "Имя персонажа",
+                    "value": "Имя"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "remove",
+                    "name": "Краткое описание",
+                    "value": "Описание"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "remove",
+                    "name": "Теги",
+                    "value": "#тег"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "border-none-variant",
+                    "name": "Число",
+                    "value": "0"
                 }
             ]
         ]
