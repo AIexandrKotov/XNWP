@@ -87,7 +87,7 @@ class ChooseGenerator(AbstractGenerator):
 
 
 @dataclass
-class DBChooseGenerator(AbstractGenerator):
+class ChooseDatabaseGenerator(AbstractGenerator):
     def get_next(  # type: ignore
         self, /, *args: tuple, db_name: str, **kwargs: dict[str, Any]
     ) -> Any:
@@ -187,7 +187,7 @@ class RanameDatabaseGenerator(AbstractGenerator, Raname):
 class Generators:
     digit_generator: AbstractGenerator = DigitGenerator()
     choose_generator: AbstractGenerator = ChooseGenerator()
-    db_choose_generator: AbstractGenerator = DBChooseGenerator()
+    db_choose_generator: AbstractGenerator = ChooseDatabaseGenerator()
     raname_generator: AbstractGenerator = RanameGenerator()
     db_raname_generator: AbstractGenerator = RanameDatabaseGenerator()
 
@@ -228,13 +228,13 @@ class Generators:
         raise ValueError(f'Generator "{generator_name}" not exists')
 
     @staticmethod
-    def get_value_direct(generator_name: str, args: dict[str, Any]) -> Any:
-        return Generators.__named_generators[generator_name].get_next(**args)
+    def get_value_direct(generator_name: str, args: dict[str, Any]) -> str:
+        return str(Generators.__named_generators[generator_name].get_next(**args))
 
     @staticmethod
-    def get_value(p: Property) -> Any:
-        return Generators.__named_generators[p.generator].get_next(
-            **p.generator_arguments
+    def get_value(p: Property) -> str:
+        return str(
+            Generators.__named_generators[p.generator].get_next(**p.generator_arguments)
         )
 
     @staticmethod

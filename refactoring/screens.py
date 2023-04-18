@@ -3,13 +3,15 @@ from __future__ import annotations
 import copy
 from typing import Any, Callable, Optional
 
+from generators import Generators
 from kivy.core.window import Window
 from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDFlatButton, MDRaisedButton
+from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDTextButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
 from kivymd.uix.gridlayout import MDGridLayout
+from kivymd.uix.label import MDLabel
 from kivymd.uix.list import (
     IconLeftWidget,
     MDList,
@@ -30,9 +32,11 @@ from kivymd.uix.navigationdrawer import (
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.toolbar import MDTopAppBar
 from logic import Person, Property, XNWPProfile
+from pydantic import BaseModel
 
 # ———————————————————————————————————————————————————————————————————————————
 # ————————————————————————— Globals —————————————————————————
@@ -48,9 +52,209 @@ class DialogOneLineIconItem(OneLineIconListItem):
         self.add_widget(IconLeftWidget(icon=icon))
 
 
+class LabelCheckbox(MDBoxLayout):
+    def __init__(self, text: str, active: bool, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.checkbox = MDCheckbox(
+            size_hint=(None, None),
+            pos_hint={"center_x": 0, "center_y": 0.5},
+            size=("48dp", "48dp"),
+            active=active,
+        )
+        self.button = MDTextButton(
+            text=text, font_size=32, pos_hint={"center_x": 0, "center_y": 0.5}
+        )
+
+        def label_on_release() -> None:
+            self.checkbox.active = not self.checkbox.active
+
+        self.button.on_release = label_on_release
+        self.add_widget(self.checkbox)
+        self.add_widget(self.button)
+        self.adaptive_height = True
+
+
 # ———————————————————————————————————————————————————————————————————————————
-# ————————————————————————— GeneratorChooserScreen —————————————————————————
+# ————————————————————————— Generators Screens —————————————————————————
 # ———————————————————————————————————————————————————————————————————————————
+
+
+class ISettingsScreen:
+    def update_arguments(self, pproperty: Property) -> None:
+        """Обновить аргументы в переданном свойстве"""
+        pass
+
+    def update_screen(self, pproperty: Property) -> None:
+        """Обновить графические представление исходя из этого свойства"""
+        pass
+
+
+class DigitGeneratorSettingsScreen(MDScreen, ISettingsScreen):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = str(Generators.digit_generator)
+
+        self.grid = MDGridLayout()
+        self.grid.cols = 1
+        self.grid.spacing = 25
+        self.grid.padding = 25, 25, 25, 25
+        self.grid.add_widget(
+            MDLabel(
+                text="Генератор вернёт значение в интервале [A, B)",
+                adaptive_height=True,
+            )
+        )
+        self.lower_text_field = MDTextField(
+            mode="rectangle", hint_text="Нижняя граница"
+        )
+        self.upper_text_field = MDTextField(
+            mode="rectangle", hint_text="Верхняя граница"
+        )
+        self.grid.add_widget(self.lower_text_field)
+        self.grid.add_widget(self.upper_text_field)
+        self.add_widget(self.grid)
+
+    def update_arguments(self, pproperty: Property) -> None:
+        pproperty.generator_arguments["lower"] = int(self.lower_text_field.text)
+        pproperty.generator_arguments["upper"] = int(self.upper_text_field.text)
+
+    def update_screen(self, pproperty: Property) -> None:
+        self.lower_text_field.text = str(pproperty.generator_arguments["lower"])
+        self.upper_text_field.text = str(pproperty.generator_arguments["upper"])
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— ChooseGeneratorScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class GeneratorInfo(BaseModel):
+    name: str
+    description: str
+    icon: str
+
+
+class GeneratorElement(TwoLineIconListItem):
+    def __init__(
+        self,
+        choose_screen: ChooseGeneratorScreen,
+        generator: str,
+        info: GeneratorInfo,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.choose_screen: ChooseGeneratorScreen = choose_screen
+        self.generator = generator
+        self.text = info.name
+        self.secondary_text = info.description
+        self.add_widget(IconLeftWidget(icon=info.icon))
+
+    def on_release(self) -> None:
+        self.choose_screen.choose_generator(self.generator)
+
+
+class ChooseGeneratorScreen(MDScreen):
+    infos: dict[str, GeneratorInfo] = {}
+
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "choose_generator"
+        self.main_screen = main_screen
+        self.nav_drawer = nav_drawer
+
+        ChooseGeneratorScreen.set_generator(
+            "",
+            GeneratorInfo(
+                name="Отсутствует",
+                description="Нельзя генерировать значения для свойств с этим генератором",
+                icon="border-none-variant",
+            ),
+        )
+        ChooseGeneratorScreen.set_generator(
+            str(Generators.digit_generator),
+            GeneratorInfo(
+                name="Число",
+                description="Случайное число в диапазоне",
+                icon="border-none-variant",
+            ),
+        )
+        ChooseGeneratorScreen.set_generator(
+            str(Generators.choose_generator),
+            GeneratorInfo(
+                name="Выбор",
+                description="Случайный выбор из списка значений",
+                icon="border-none-variant",
+            ),
+        )
+        ChooseGeneratorScreen.set_generator(
+            str(Generators.db_choose_generator),
+            GeneratorInfo(
+                name="Выбор из базы данных",
+                description="Случайный выбор значения из БД",
+                icon="border-none-variant",
+            ),
+        )
+        ChooseGeneratorScreen.set_generator(
+            str(Generators.raname_generator),
+            GeneratorInfo(
+                name="Raname",
+                description="Создание случайного слова на основе списка существующих",
+                icon="border-none-variant",
+            ),
+        )
+        ChooseGeneratorScreen.set_generator(
+            str(Generators.db_raname_generator),
+            GeneratorInfo(
+                name="Raname из базы данных",
+                description="Создание случайного слова на основе БД существующих",
+                icon="border-none-variant",
+            ),
+        )
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+
+        top_bar = MDTopAppBar()
+        top_bar.title = "Выберите генератор"
+        top_bar.elevation = 2
+        top_bar.left_action_items = [
+            ["menu", lambda _: self.nav_drawer.set_state("open")]
+        ]
+        box_layout1.add_widget(top_bar)
+
+        scroll_view = MDScrollView()
+        self.list = MDList()
+        scroll_view.add_widget(self.list)
+        box_layout1.add_widget(scroll_view)
+        self.add_widget(box_layout1)
+
+        for generator, info in ChooseGeneratorScreen.infos.items():
+            self.list.add_widget(GeneratorElement(self, generator, info))
+
+    @staticmethod
+    def set_generator(generator: str, info: GeneratorInfo) -> None:
+        ChooseGeneratorScreen.infos[generator] = info
+
+    def choose_generator(self, generator: str) -> None:
+        self.main_screen.property_editor_screen.changing_generator(generator)
+        self.main_screen.screen_manager.current = "property_editor"
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            self.main_screen.screen_manager.current = "property_editor"
 
 
 # ———————————————————————————————————————————————————————————————————————————
@@ -88,20 +292,33 @@ class GeneratorSettingsScreen(MDScreen):
         ]
 
         self.screen_manager = MDScreenManager()
+        self.screen_manager.add_widget(DigitGeneratorSettingsScreen())
 
         box_layout1.add_widget(top_bar)
         box_layout1.add_widget(self.screen_manager)
         self.add_widget(box_layout1)
 
+    def get_current_screen(self) -> ISettingsScreen:
+        if isinstance(self.screen_manager.current_screen, ISettingsScreen):
+            return self.screen_manager.current_screen
+        return ISettingsScreen()
+
     def set_to_default(self) -> None:
-        pass
+        if self.pproperty is None:
+            return
+        if self.pproperty.generator != "":
+            self.pproperty.generator_arguments = Generators.get_generator_from_name(
+                self.pproperty.generator
+            ).get_default()
+            self.get_current_screen().update_screen(self.pproperty)
 
     def change_profile(self, new_profile: XNWPProfile) -> None:
         self.profile = new_profile
 
     def update(self, pproperty: Property) -> None:
         self.pproperty = pproperty
-        self.screen_manager.current_screen.update_pproperty(pproperty)
+        self.screen_manager.current = pproperty.generator
+        self.get_current_screen().update_screen(self.pproperty)
 
     def on_enter(self, *args: Any) -> None:
         Window.bind(on_keyboard=self.keypress)
@@ -110,6 +327,10 @@ class GeneratorSettingsScreen(MDScreen):
         Window.unbind(on_keyboard=self.keypress)
         if self.pproperty is None:
             return
+        try:
+            self.get_current_screen().update_arguments(self.pproperty)
+        except Exception:
+            self.set_to_default()
         self.main_screen.property_editor_screen.update(
             self.pproperty, self.main_screen.property_editor_screen.is_in_person_editor
         )
@@ -125,7 +346,9 @@ class GeneratorSettingsScreen(MDScreen):
 
 
 class GenerateValueButton(MDRaisedButton):
-    def __init__(self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.property_editor = property_editor
         self.text = "Сгенерировать значение"
@@ -136,7 +359,9 @@ class GenerateValueButton(MDRaisedButton):
 
 
 class ChangeIconButton(MDRaisedButton):
-    def __init__(self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.property_editor = property_editor
         self.pos_hint = {"center_x": 0.5, "center_y": 0.5}
@@ -148,7 +373,9 @@ class ChangeIconButton(MDRaisedButton):
 
 
 class OpenGeneratorSettingsButton(MDRaisedButton):
-    def __init__(self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.property_editor = property_editor
         self.text = "Настройки генератора"
@@ -159,7 +386,9 @@ class OpenGeneratorSettingsButton(MDRaisedButton):
 
 
 class ChangeGeneratorButton(MDRaisedButton):
-    def __init__(self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, property_editor: PropertyEditorScreen, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.property_editor = property_editor
         self.text = "Выбрать другой"
@@ -260,10 +489,7 @@ class PropertyEditorScreen(MDScreen):
 
     @staticmethod
     def get_generator_name(generator_name: str) -> str:
-        if generator_name == "":
-            return "Отсутствует"
-        else:
-            return generator_name
+        return ChooseGeneratorScreen.infos[generator_name].name
 
     @staticmethod
     def get_icon_from_icon(icon: str) -> str:
@@ -290,22 +516,41 @@ class PropertyEditorScreen(MDScreen):
         self.pproperty.value = self.value_text_field.text
 
     def generate_value(self) -> None:
-        pass
+        if self.pproperty is None:
+            return
+        if self.pproperty.generator != "":
+            Generators.generate(self.pproperty)
+            self.value_text_field.text = self.pproperty.value
 
-    def changing_icon(self) -> None:
+    def changing_icon(self, icon: str) -> None:
         pass
 
     def change_icon(self) -> None:
         pass
 
     def open_generator_settings(self) -> None:
-        self.main_screen.screen_manager.current = "generator_settings"
+        if self.pproperty is None:
+            return
+        if self.pproperty.generator != "":
+            self.main_screen.generator_settings_screen.update(self.pproperty)
+            self.main_screen.screen_manager.current = "generator_settings"
 
-    def changing_generator(self) -> None:
-        pass
+    def changing_generator(self, generator: str) -> None:
+        if self.pproperty is None:
+            return
+        self.generator_text_field.text = ChooseGeneratorScreen.infos[generator].name
+        if generator == "":
+            self.pproperty.generator = ""
+            self.pproperty.generator_arguments = {}
+        else:
+            Generators.get_generator_from_name(generator).include_in_property(
+                self.pproperty
+            )
 
     def change_generator(self) -> None:
-        pass
+        if self.pproperty is None:
+            return
+        self.main_screen.screen_manager.current = "choose_generator"
 
     def on_enter(self, *args: Any) -> None:
         Window.bind(on_keyboard=self.keypress)
@@ -1935,6 +2180,12 @@ class MainScreen(MDScreen):
             self, navigation_drawer, profile
         )
         self.screen_manager.add_widget(self.generator_settings_screen)
+
+        self.choose_generator_screen = ChooseGeneratorScreen(
+            self,
+            navigation_drawer,
+        )
+        self.screen_manager.add_widget(self.choose_generator_screen)
 
         self.update_groups_count()
 
