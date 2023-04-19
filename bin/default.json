@@ -36,6 +36,10 @@
                                     "value": "#тег"
                                 }
                             ]
+                        ],
+                        [
+                            "История",
+                            []
                         ]
                     ]
                 }
@@ -51,16 +55,28 @@
             "Изначальные",
             [
                 {
-                    "properties": []
-                },
-                {
-                    "properties": []
-                },
-                {
-                    "properties": []
-                },
-                {
-                    "properties": []
+                    "properties": [
+                        [
+                            "Основные",
+                            [
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "pencil-outline",
+                                    "name": "Имя персонажа",
+                                    "value": "Шаблон человека"
+                                }
+                            ]
+                        ],
+                        [
+                            "История",
+                            []
+                        ],
+                        [
+                            "История",
+                            []
+                        ]
+                    ]
                 }
             ]
         ]
@@ -72,7 +88,7 @@
                 {
                     "generator": "",
                     "generator_arguments": {},
-                    "icon": "remove",
+                    "icon": "pencil-outline",
                     "name": "Имя персонажа",
                     "value": "Имя"
                 },

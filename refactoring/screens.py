@@ -337,9 +337,7 @@ class PersonPropertyElement(TwoLineIconListItem, TouchBehavior):
         self.add_widget(self.icon_widget)
         self.update(self.pproperty)
 
-    def update(self, pproperty: Optional[Property]) -> None:
-        if pproperty is None:
-            return
+    def update(self, pproperty: Property) -> None:
         self.pproperty = pproperty
         self.text = PropertyElement.get_text(self.pproperty)
         self.secondary_text = PropertyElement.get_sec_text(self.pproperty)
@@ -429,7 +427,7 @@ class PersonEditorScreen(MDScreen):
 
     def change_profile(self, new_profile: XNWPProfile) -> None:
         self.profile = new_profile
-        self.properties_tuple = None
+        self.person = None
 
     def update_person(self, new_person: Person) -> None:
         if self.person != new_person:
@@ -456,12 +454,23 @@ class PersonEditorScreen(MDScreen):
                     list_element_of_group = ppe
         return list_element_of_group
 
+    def get_tab_list(self) -> list[PropertyGroupTab]:
+        return [tab.tab for tab in self.tabs.get_tab_list()]
+
     def get_current_tab(self) -> Optional[PropertyGroupTab]:
         if self.person is None:
             return None
         if len(self.person.properties) > 0:
             tab = self.tabs.get_current_tab()
             if type(tab) is PropertyGroupTab:
+                return tab
+        return None
+
+    def get_tab(
+        self, property_group: tuple[str, list[Property]]
+    ) -> Optional[PropertyGroupTab]:
+        for tab in self.get_tab_list():
+            if tab.properties_group == property_group:
                 return tab
         return None
 
@@ -519,21 +528,23 @@ class PersonEditorScreen(MDScreen):
 
     def add_random_property(self, property_group: tuple[str, list[Property]]) -> None:
         properties = self.get_properties_g(property_group)
-        tab = self.get_current_tab()
+        tab = self.get_tab(property_group)
         if tab is None:
             return
         searched_property = self.search_sample_with_name(property_group[0])
         if searched_property is None:
             return
         new_property = copy.deepcopy(searched_property)
+        if new_property.generator != "":
+            Generators.generate(new_property)
         properties.append(new_property)
         tab.list.add_widget(PersonPropertyElement(new_property, self))
 
     def move_left_group(self, property_group: tuple[str, list[Property]]) -> None:
-        tab = self.get_current_tab()
+        tab = self.get_tab(property_group)
         if self.person is None or tab is None:
             return
-        tab_list: list[PropertyGroupTab] = self.tabs.get_tab_list()
+        tab_list: list[PropertyGroupTab] = self.get_tab_list()
         index = tab_list.index(tab)
         if index == 0 or len(tab_list) < 2:
             return
@@ -548,10 +559,10 @@ class PersonEditorScreen(MDScreen):
         self.person.properties.insert(swap_index, property_group)
 
     def move_right_group(self, property_group: tuple[str, list[Property]]) -> None:
-        tab = self.get_current_tab()
+        tab = self.get_tab(property_group)
         if self.person is None or tab is None:
             return
-        tab_list: list[PropertyGroupTab] = self.tabs.get_tab_list()
+        tab_list: list[PropertyGroupTab] = self.get_tab_list()
         index = tab_list.index(tab)
         if index == len(tab_list) - 1 or len(tab_list) < 2:
             return
@@ -569,7 +580,7 @@ class PersonEditorScreen(MDScreen):
         self, property_group: tuple[str, list[Property]], new_name: str
     ) -> None:
         properties = self.get_properties()
-        tab = self.get_current_tab()
+        tab = self.get_tab(property_group)
         if self.person is None or properties is None or tab is None:
             return
         index = self.person.properties.index(property_group)
@@ -582,7 +593,7 @@ class PersonEditorScreen(MDScreen):
         RenamePersonPropertyGroupDialog(property_group, self).open()
 
     def remove_group(self, property_group: tuple[str, list[Property]]) -> None:
-        tab = self.get_current_tab()
+        tab = self.get_tab(property_group)
         if self.person is None or tab is None:
             return
         self.tabs.remove_widget(tab)
@@ -2036,7 +2047,7 @@ class PropertyElement(TwoLineIconListItem, TouchBehavior):
         **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
-        self.pproperty = pproperty
+        self.pproperty: Property = pproperty
         self.properties_screen = properties_screen
         self.icon_widget = IconLeftWidget(
             icon=PropertyElement.get_prop_icon(self.pproperty)
@@ -2068,7 +2079,7 @@ class PropertyElement(TwoLineIconListItem, TouchBehavior):
 
     @staticmethod
     def get_prop_icon(pproperty: Property) -> str:
-        if pproperty.icon == "" or pproperty.value.isspace():
+        if pproperty.icon == "" or pproperty.icon.isspace():
             return "border-none-variant"
         else:
             return pproperty.icon
