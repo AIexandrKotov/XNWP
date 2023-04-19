@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from random import Random
 from typing import Any, Callable, Optional
 
 from databases import Dataset, get_all_datalists
@@ -39,6 +40,7 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.selectioncontrol import MDCheckbox
+from kivymd.uix.tab import MDTabs, MDTabsBase
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.toolbar import MDTopAppBar
 from logic import Person, Property, XNWPProfile
@@ -80,6 +82,637 @@ class LabelCheckbox(MDBoxLayout):
         self.add_widget(self.checkbox)
         self.add_widget(self.button)
         self.adaptive_height = True
+
+
+# ———————————————————————————————————————————————————————————————————————————
+# ————————————————————————— PersonEditorScreen —————————————————————————
+# ———————————————————————————————————————————————————————————————————————————
+
+
+class AddNewPersonPropertyGroupDialog(MDDialog):
+    def __init__(self, editor_screen: PersonEditorScreen, **kwargs: Any) -> None:
+        super().__init__(
+            title="Добавить группу",
+            buttons=[
+                MDFlatButton(
+                    text="Добавить",
+                    on_release=lambda x: self.add_new_group(),
+                )
+            ],
+            **kwargs,
+        )
+        self.editor_screen = editor_screen
+
+        self.textfield = MDTextField()
+        self.textfield.padding = [25, 0, 25, 0]
+        # self.spacing = "10dp"
+        self.add_widget(self.textfield)
+
+    def add_new_group(self) -> None:
+        if not self.textfield.text.isspace():
+            self.editor_screen.adding_group(self.textfield.text)
+            self.textfield.text = ""
+        self.dismiss()
+
+
+class RenamePersonPropertyGroupDialog(MDDialog):
+    def __init__(
+        self,
+        property_group: tuple[str, list[Property]],
+        editor_screen: PersonEditorScreen,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            title="Переименовать группу",
+            buttons=[
+                MDFlatButton(
+                    text="Переименовать",
+                    on_release=lambda x: self.rename_group(),
+                )
+            ],
+            **kwargs,
+        )
+        self.editor_screen = editor_screen
+        self.property_group = property_group
+
+        self.textfield: MDTextField = MDTextField()
+        self.textfield.padding = [25, 0, 25, 0]
+        self.textfield.text = property_group[0]
+        # self.spacing = "10dp"
+        self.add_widget(self.textfield)
+
+    def rename_group(self) -> None:
+        if not self.textfield.text.isspace():
+            self.editor_screen.renaming_group(self.property_group, self.textfield.text)
+            self.textfield.text = ""
+        self.dismiss()
+
+
+class EditPersonPropertyGroupDialog(MDDialog):
+    def __init__(
+        self,
+        property_group: Optional[tuple[str, list[Property]]],
+        editor_screen: PersonEditorScreen,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            title="Редактировать группу свойств",
+            type="simple",
+            items=[
+                DialogOneLineIconItem(
+                    text="Добавить новую группу",
+                    icon="plus",
+                    on_release=lambda x: self.add_new_group(),
+                ),
+                DialogOneLineIconItem(
+                    text="Переименовать группу",
+                    icon="rename-box",
+                    on_release=lambda x: self.rename_group(),
+                ),
+                DialogOneLineIconItem(
+                    text="Добавить случайное свойство",
+                    icon="plus",
+                    on_release=lambda x: self.add_random_property(),
+                ),
+                DialogOneLineIconItem(
+                    text="Переместить левее",
+                    icon="arrow-collapse-left",
+                    on_release=lambda x: self.move_left_property_group(),
+                ),
+                DialogOneLineIconItem(
+                    text="Переместить правее",
+                    icon="arrow-collapse-right",
+                    on_release=lambda x: self.move_right_property_group(),
+                ),
+                DialogOneLineIconItem(
+                    text="Удалить группу свойств",
+                    icon="content-copy",
+                    on_release=lambda x: self.remove_property_group(),
+                ),
+            ],
+            **kwargs,
+        )
+        self.property_group = property_group
+        self.editor_screen: PersonEditorScreen = editor_screen
+
+    def update_property_group(
+        self, property_group: Optional[tuple[str, list[Property]]]
+    ) -> EditPersonPropertyGroupDialog:
+        self.property_group = property_group
+        return self
+
+    def add_new_group(self) -> None:
+        self.editor_screen.add_new_group()
+        self.dismiss()
+
+    def rename_group(self) -> None:
+        if self.property_group is None:
+            return
+        self.editor_screen.rename_group(self.property_group)
+        self.dismiss()
+
+    def add_random_property(self) -> None:
+        if self.property_group is None:
+            return
+        self.editor_screen.add_random_property(self.property_group)
+        self.dismiss()
+
+    def move_left_property_group(self) -> None:
+        if self.property_group is None:
+            return
+        self.editor_screen.move_left_group(self.property_group)
+
+    def move_right_property_group(self) -> None:
+        if self.property_group is None:
+            return
+        self.editor_screen.move_right_group(self.property_group)
+
+    def remove_property_group(self) -> None:
+        if self.property_group is None:
+            return
+        self.editor_screen.remove_group(self.property_group)
+        self.dismiss()
+
+
+class EditPersonPropertyDialog(MDDialog):
+    def __init__(
+        self,
+        pproperty: Optional[Property],
+        editor_screen: PersonEditorScreen,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            title="Редактировать свойство",
+            type="simple",
+            items=[
+                DialogOneLineIconItem(
+                    text="Сгенерировать значение",
+                    icon="arrow-collapse-up",
+                    on_release=lambda x: self.generate_new_value(),
+                ),
+                DialogOneLineIconItem(
+                    text="Переместить выше",
+                    icon="arrow-collapse-up",
+                    on_release=lambda x: self.move_up_property(),
+                ),
+                DialogOneLineIconItem(
+                    text="Переместить ниже",
+                    icon="arrow-collapse-down",
+                    on_release=lambda x: self.move_down_property(),
+                ),
+                DialogOneLineIconItem(
+                    text="Копировать в буфер",
+                    icon="content-copy",
+                    on_release=lambda x: self.copy_property(),
+                ),
+                DialogOneLineIconItem(
+                    text="Вырезать свойство",
+                    icon="content-cut",
+                    on_release=lambda x: self.cut_property(),
+                ),
+                DialogOneLineIconItem(
+                    text="Удалить свойство",
+                    icon="account-remove",
+                    on_release=lambda x: self.remove_property(),
+                ),
+            ],
+            **kwargs,
+        )
+        self.pproperty = pproperty
+        self.editor_screen = editor_screen
+
+    def update_property(self, pproperty: Property) -> EditPersonPropertyDialog:
+        self.pproperty = pproperty
+        return self
+
+    def generate_new_value(self) -> None:
+        if self.pproperty is None:
+            return
+        self.editor_screen.generate_new_value(self.pproperty)
+        self.dismiss()
+
+    def move_up_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.editor_screen.move_up_property(self.pproperty)
+
+    def move_down_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.editor_screen.move_down_property(self.pproperty)
+
+    def copy_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.editor_screen.copy_property(self.pproperty)
+        self.dismiss()
+
+    def cut_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.editor_screen.cut_property(self.pproperty)
+        self.dismiss()
+
+    def remove_property(self) -> None:
+        if self.pproperty is None:
+            return
+        self.editor_screen.remove_property(self.pproperty)
+        self.dismiss()
+
+
+class PersonPropertyElement(TwoLineIconListItem, TouchBehavior):
+    def __init__(
+        self,
+        pproperty: Property,
+        editor_screen: PersonEditorScreen,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.pproperty = pproperty
+        self.editor_screen = editor_screen
+        self.icon_widget = IconLeftWidget(
+            icon=PropertyElement.get_prop_icon(self.pproperty)
+        )
+        self.add_widget(self.icon_widget)
+        self.update(self.pproperty)
+
+    def update(self, pproperty: Optional[Property]) -> None:
+        if pproperty is None:
+            return
+        self.pproperty = pproperty
+        self.text = PropertyElement.get_text(self.pproperty)
+        self.secondary_text = PropertyElement.get_sec_text(self.pproperty)
+        self.icon_widget.icon = PropertyElement.get_prop_icon(self.pproperty)
+
+    def on_release(self) -> None:
+        if self.pproperty is None:
+            return
+        if self.editor_screen.edit_person_property_dialog._is_open:
+            return
+        self.editor_screen.release_property(self.pproperty)
+        pass
+
+    def on_long_touch(self, touch: Any, *args: Any) -> None:
+        self.editor_screen.open_property_dialog(self.pproperty)
+        pass
+
+
+class PropertyGroupTab(MDBoxLayout, MDTabsBase):
+    def __init__(
+        self,
+        properties_group: tuple[str, list[Property]],
+        editor_screen: PersonEditorScreen,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.editor_screen = editor_screen
+        self.properties_group = properties_group
+
+        scrollview = MDScrollView()
+        self.list = MDList()
+        scrollview.add_widget(self.list)
+        self.add_widget(scrollview)
+        self.update_properties(properties_group)
+
+    def update_renaming(self, properties: tuple[str, list[Property]]) -> None:
+        self.properties_group = properties
+        self.tab_label_text = self.properties_group[0]
+
+    def update_properties(self, properties: tuple[str, list[Property]]) -> None:
+        self.properties_group = properties
+        self.tab_label_text = self.properties_group[0]
+        self.list.clear_widgets()
+        for pproperty in self.properties_group[1]:
+            self.list.add_widget(PersonPropertyElement(pproperty, self.editor_screen))
+
+
+class PersonEditorScreen(MDScreen):
+    def __init__(
+        self,
+        main_screen: MainScreen,
+        nav_drawer: MDNavigationDrawer,
+        profile: XNWPProfile,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = "person_editor"
+        self.main_screen = main_screen
+        self.nav_drawer = nav_drawer
+        self.profile = profile
+        self.person: Optional[Person] = None
+        self.random = Random()
+
+        self.add_new_group_dialog = AddNewPersonPropertyGroupDialog(self)
+        self.edit_person_property_dialog = EditPersonPropertyDialog(None, self)
+        self.edit_property_group_dialog = EditPersonPropertyGroupDialog(None, self)
+
+        box_layout1 = MDBoxLayout()
+        box_layout1.orientation = "vertical"
+
+        top_bar = MDTopAppBar()
+        top_bar.title = "Редактор персонажа"
+        top_bar.elevation = 2
+        top_bar.left_action_items = [["menu", lambda x: nav_drawer.set_state("open")]]
+        top_bar.right_action_items = [
+            ["cog", lambda _: self.open_group_dialog()],
+            ["content-paste", lambda _: self.paste_property()],
+            ["plus-circle-outline", lambda _: self.add_new_property()],
+            ["plus", lambda _: self.add_sample_property()],
+        ]
+        box_layout1.add_widget(top_bar)
+        self.tabs = MDTabs()
+        box_layout1.add_widget(self.tabs)
+        self.add_widget(box_layout1)
+
+    def change_profile(self, new_profile: XNWPProfile) -> None:
+        self.profile = new_profile
+        self.properties_tuple = None
+
+    def update_person(self, new_person: Person) -> None:
+        if self.person != new_person:
+            self.person = new_person
+            for tab in self.tabs.get_tab_list():
+                self.tabs.remove_widget(tab)
+            for properties_group in self.person.properties:
+                self.tabs.add_widget(PropertyGroupTab(properties_group, self))
+
+    def update_property(self, pproperty: Property) -> None:
+        tab = self.get_current_tab()
+        if tab is None:
+            return
+        element_this = self.get_element_of_property(tab, pproperty)
+        element_this.update(pproperty)
+
+    def get_element_of_property(
+        self, tab: PropertyGroupTab, pproperty: Property
+    ) -> PersonPropertyElement:
+        for list_element in tab.list.children[:]:
+            if type(list_element) is PersonPropertyElement:
+                ppe: PersonPropertyElement = list_element
+                if ppe.pproperty == pproperty:
+                    list_element_of_group = ppe
+        return list_element_of_group
+
+    def get_current_tab(self) -> Optional[PropertyGroupTab]:
+        if self.person is None:
+            return None
+        if len(self.person.properties) > 0:
+            tab = self.tabs.get_current_tab()
+            if type(tab) is PropertyGroupTab:
+                return tab
+        return None
+
+    def get_properties(self) -> Optional[list[Property]]:
+        group = self.get_current_group()
+        if group is None:
+            return None
+        else:
+            return group[1]
+
+    def get_properties_g(
+        self, property_group: tuple[str, list[Property]]
+    ) -> list[Property]:
+        return property_group[1]
+
+    def get_current_group(self) -> Optional[tuple[str, list[Property]]]:
+        if self.person is None:
+            return None
+        if len(self.person.properties) > 0:
+            tab = self.get_current_tab()
+            if tab is None:
+                return None
+            else:
+                return tab.properties_group
+        return None
+
+    def open_property_dialog(self, pproperty: Property) -> None:
+        self.edit_person_property_dialog.update_property(pproperty).open()
+
+    def open_group_dialog(self) -> None:
+        self.edit_property_group_dialog.update_property_group(
+            self.get_current_group()
+        ).open()
+
+    def adding_group(self, group_name: str) -> None:
+        if self.person is None:
+            return
+        new_group: tuple[str, list[Property]] = (group_name, [])
+        self.person.properties.append(new_group)
+        self.tabs.add_widget(
+            PropertyGroupTab(properties_group=new_group, editor_screen=self)
+        )
+
+    def add_new_group(self) -> None:
+        self.add_new_group_dialog.open()
+
+    def search_sample_with_name(self, name: str) -> Optional[Property]:
+        for property_group in self.profile.sample_properties:
+            if property_group[0] == name:
+                if len(property_group[1]) == 0:
+                    return None
+                else:
+                    return self.random.choice(property_group[1])
+        return None
+
+    def add_random_property(self, property_group: tuple[str, list[Property]]) -> None:
+        properties = self.get_properties_g(property_group)
+        tab = self.get_current_tab()
+        if tab is None:
+            return
+        searched_property = self.search_sample_with_name(property_group[0])
+        if searched_property is None:
+            return
+        new_property = copy.deepcopy(searched_property)
+        properties.append(new_property)
+        tab.list.add_widget(PersonPropertyElement(new_property, self))
+
+    def move_left_group(self, property_group: tuple[str, list[Property]]) -> None:
+        tab = self.get_current_tab()
+        if self.person is None or tab is None:
+            return
+        tab_list: list[PropertyGroupTab] = self.tabs.get_tab_list()
+        index = tab_list.index(tab)
+        if index == 0 or len(tab_list) < 2:
+            return
+        swap_index = index - 1
+        swap = self.person.properties[swap_index]
+        tab_swap = tab_list[swap_index]
+        tab.update_properties(swap)
+        tab_swap.update_properties(property_group)
+        self.person.properties.pop(index)
+        self.person.properties.insert(index, swap)
+        self.person.properties.pop(swap_index)
+        self.person.properties.insert(swap_index, property_group)
+
+    def move_right_group(self, property_group: tuple[str, list[Property]]) -> None:
+        tab = self.get_current_tab()
+        if self.person is None or tab is None:
+            return
+        tab_list: list[PropertyGroupTab] = self.tabs.get_tab_list()
+        index = tab_list.index(tab)
+        if index == len(tab_list) - 1 or len(tab_list) < 2:
+            return
+        swap_index = index + 1
+        swap = self.person.properties[swap_index]
+        tab_swap = tab_list[swap_index]
+        tab.update_properties(swap)
+        tab_swap.update_properties(property_group)
+        self.person.properties.pop(index)
+        self.person.properties.insert(index, swap)
+        self.person.properties.pop(swap_index)
+        self.person.properties.insert(swap_index, property_group)
+
+    def renaming_group(
+        self, property_group: tuple[str, list[Property]], new_name: str
+    ) -> None:
+        properties = self.get_properties()
+        tab = self.get_current_tab()
+        if self.person is None or properties is None or tab is None:
+            return
+        index = self.person.properties.index(property_group)
+        self.person.properties.remove(property_group)
+        new_group: tuple[str, list[Property]] = (new_name, property_group[1])
+        self.person.properties.insert(index, new_group)
+        tab.update_renaming(new_group)
+
+    def rename_group(self, property_group: tuple[str, list[Property]]) -> None:
+        RenamePersonPropertyGroupDialog(property_group, self).open()
+
+    def remove_group(self, property_group: tuple[str, list[Property]]) -> None:
+        tab = self.get_current_tab()
+        if self.person is None or tab is None:
+            return
+        self.tabs.remove_widget(tab)
+        self.person.properties.remove(property_group)
+
+    def add_new_property(self) -> None:
+        properties = self.get_properties()
+        tab = self.get_current_tab()
+        if self.person is None or properties is None or tab is None:
+            return
+        new_property = Property(
+            name="", generator="", icon="", value="", generator_arguments={}
+        )
+        properties.append(new_property)
+        tab.list.add_widget(PersonPropertyElement(new_property, self))
+
+    def adding_sample(self, pproperty: Property) -> None:
+        properties = self.get_properties()
+        tab = self.get_current_tab()
+        if self.person is None or properties is None or tab is None:
+            return
+        new_property = copy.deepcopy(pproperty)
+        properties.append(new_property)
+        tab.list.add_widget(PersonPropertyElement(new_property, self))
+
+    def add_sample_property(self) -> None:
+        if self.person is None:
+            return
+        if len(self.person.properties) > 0:
+            self.main_screen.choose_sample_property_screen.update(True)
+            self.main_screen.screen_manager.current = "choose_sample_property"
+
+    def paste_property(self) -> None:
+        properties = self.get_properties()
+        tab = self.get_current_tab()
+        if self.person is None or properties is None or tab is None:
+            return
+        if PropertiesListScreen.buffer is None:
+            return
+        new_property = copy.deepcopy(PropertiesListScreen.buffer)
+        properties.append(new_property)
+        tab.list.add_widget(PersonPropertyElement(new_property, self))
+
+    def release_property(self, pproperty: Property) -> None:
+        self.main_screen.property_editor_screen.update(pproperty, True)
+        self.main_screen.screen_manager.current = "property_editor"
+
+    def generate_new_value(self, pproperty: Property) -> None:
+        properties = self.get_properties()
+        tab = self.get_current_tab()
+        if self.person is None or properties is None or tab is None:
+            return
+        if pproperty.generator == "":
+            return
+        Generators.generate(pproperty)
+        element_this = self.get_element_of_property(tab, pproperty)
+        element_this.update(pproperty)
+
+    def move_up_property(self, pproperty: Property) -> None:
+        properties = self.get_properties()
+        tab = self.get_current_tab()
+        if self.person is None or properties is None or tab is None:
+            return
+        index = properties.index(pproperty)
+        if index == 0 or len(properties) < 2:
+            return
+        element_this = self.get_element_of_property(tab, pproperty)
+        swap_index = index - 1
+        swap = properties[swap_index]
+        element_swap = self.get_element_of_property(tab, swap)
+        element_this.update(swap)
+        element_swap.update(pproperty)
+        properties.pop(index)
+        properties.insert(index, swap)
+        properties.pop(swap_index)
+        properties.insert(swap_index, pproperty)
+
+    def move_down_property(self, pproperty: Property) -> None:
+        properties = self.get_properties()
+        tab = self.get_current_tab()
+        if self.person is None or properties is None or tab is None:
+            return
+        index = properties.index(pproperty)
+        if index == len(properties) - 1 or len(properties) < 2:
+            return
+        element_this = self.get_element_of_property(tab, pproperty)
+        swap_index = index + 1
+        swap = properties[swap_index]
+        element_swap = self.get_element_of_property(tab, swap)
+        element_this.update(swap)
+        element_swap.update(pproperty)
+        properties.pop(index)
+        properties.insert(index, swap)
+        properties.pop(swap_index)
+        properties.insert(swap_index, pproperty)
+
+    def copy_property(self, pproperty: Property) -> None:
+        PropertiesListScreen.buffer = copy.deepcopy(pproperty)
+
+    def cut_property(self, pproperty: Property) -> None:
+        properties = self.get_properties()
+        tab = self.get_current_tab()
+        if self.person is None or properties is None or tab is None:
+            return
+        PropertiesListScreen.buffer = copy.deepcopy(pproperty)
+        element_this = self.get_element_of_property(tab, pproperty)
+        properties.remove(pproperty)
+        tab.list.remove_widget(element_this)
+
+    def remove_property(self, pproperty: Property) -> None:
+        properties = self.get_properties()
+        tab = self.get_current_tab()
+        if self.person is None or properties is None or tab is None:
+            return
+        element_this = self.get_element_of_property(tab, pproperty)
+        properties.remove(pproperty)
+        tab.list.remove_widget(element_this)
+
+    def on_enter(self, *args: Any) -> None:
+        Window.bind(on_keyboard=self.keypress)
+
+    def on_pre_leave(self, *args: Any) -> None:
+        Window.unbind(on_keyboard=self.keypress)
+        if self.person is None:
+            return
+        self.main_screen.person_list_screen.update_person(self.person)
+
+    def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
+        if key == 27 and self.nav_drawer.status != "opened":
+            self.main_screen.screen_manager.current = "persons_list"
 
 
 # ———————————————————————————————————————————————————————————————————————————
@@ -1046,8 +1679,8 @@ class PropertyEditorScreen(MDScreen):
         ]
         box_layout1.add_widget(top_bar)
 
-        scroll_view = MDScrollView()
-        self.list = MDList()
+        scroll_view = MDBoxLayout()
+        self.list = MDGridLayout()
         self.list.spacing = 25
         self.list.padding = 50, 0, 50, 0
         self.list.cols = 1
@@ -1185,14 +1818,14 @@ class PropertyEditorScreen(MDScreen):
         if self.pproperty is None:
             return
         if self.is_in_person_editor:
-            pass
+            self.main_screen.person_editor_screen.update_property(self.pproperty)
         else:
             self.main_screen.properties_list_screen.update_property(self.pproperty)
 
     def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
         if key == 27 and self.nav_drawer.status != "opened":
             if self.is_in_person_editor:
-                pass
+                self.main_screen.screen_manager.current = "person_editor"
             else:
                 self.main_screen.screen_manager.current = "properties_list"
 
@@ -1299,7 +1932,8 @@ class ChooseSamplePropertyScreen(MDScreen):
 
     def choose_property(self, pproperty: Property) -> None:
         if self.is_in_person_editor:
-            pass
+            self.main_screen.person_editor_screen.adding_sample(pproperty)
+            self.main_screen.screen_manager.current = "person_editor"
         else:
             self.main_screen.properties_list_screen.adding_sample(pproperty)
             self.main_screen.screen_manager.current = "properties_list"
@@ -1313,7 +1947,7 @@ class ChooseSamplePropertyScreen(MDScreen):
     def keypress(self, window: Any, key: int, keycode: int, *largs: Any) -> None:
         if key == 27 and self.nav_drawer.status != "opened":
             if self.is_in_person_editor:
-                pass
+                self.main_screen.screen_manager.current = "person_editor"
             else:
                 self.main_screen.screen_manager.current = "properties_list"
 
@@ -1441,6 +2075,8 @@ class PropertyElement(TwoLineIconListItem, TouchBehavior):
 
     def on_release(self) -> None:
         if self.pproperty is None:
+            return
+        if self.properties_screen.edit_property_dialog._is_open:
             return
         self.properties_screen.release_property(self.pproperty)
 
@@ -1579,7 +2215,7 @@ class PropertiesListScreen(MDScreen):
         if index == len(self.pproperties) - 1 or len(self.pproperties) < 2:
             return
         element_this = self.get_element_of_property(pproperty)
-        swap_index = index - 1
+        swap_index = index + 1
         swap = self.pproperties[swap_index]
         element_swap = self.get_element_of_property(swap)
         element_this.update(swap)
@@ -1793,6 +2429,8 @@ class PropertyGroupElement(TwoLineListItem, TouchBehavior):
     def on_release(self) -> None:
         if self.property_group is None:
             return
+        if self.property_screen.edit_property_group_dialog._is_open:
+            return
         self.property_screen.release_property_group(self.property_group)
 
     def on_long_touch(self, touch: Any, *args: Any) -> None:
@@ -1910,7 +2548,7 @@ class MyPropertiesGroupsScreen(MDScreen):
         ):
             return
         element_this = self.get_element_of_property_group(property_group)
-        swap_index = index - 1
+        swap_index = index + 1
         swap = self.profile.sample_properties[swap_index]
         element_swap = self.get_element_of_property_group(swap)
         element_this.update(swap)
@@ -2161,7 +2799,11 @@ class PersonElement(ThreeLineListItem, TouchBehavior):
         return ">>> No third property"
 
     def on_release(self) -> None:
-        # todo open person editor
+        if self.person is None:
+            return
+        if self.person_screen.edit_person_dialog._is_open:
+            return
+        self.person_screen.release_person(self.person)
         pass
 
     def on_long_touch(self, touch: Any, *args: Any) -> None:
@@ -2233,6 +2875,10 @@ class PersonsListScreen(MDScreen):
             self.list.add_widget(PersonElement(person=person, persons_screen=self))
         pass
 
+    def release_person(self, person: Person) -> None:
+        self.main_screen.person_editor_screen.update_person(person)
+        self.main_screen.screen_manager.current = "person_editor"
+
     def change_persons(self, persons_tuple: tuple[str, list[Person]]) -> None:
         if self.persons_tuple != persons_tuple:
             self.persons_tuple = persons_tuple
@@ -2244,6 +2890,10 @@ class PersonsListScreen(MDScreen):
         new_person = copy.deepcopy(PersonsListScreen.buffer)
         self.persons.append(new_person)
         self.list.add_widget(PersonElement(person=new_person, persons_screen=self))
+
+    def update_person(self, person: Person) -> None:
+        element_this = self.get_element_of_person(person)
+        element_this.update(person)
 
     def add_new_person(self) -> None:
         new_person = Person(properties=[])
@@ -2507,6 +3157,8 @@ class PersonGroupElement(TwoLineListItem, TouchBehavior):
 
     def on_release(self) -> None:
         if self.person_group is None:
+            return
+        if self.person_screen.edit_persoun_group_dialog._is_open:
             return
         self.person_screen.release_person_group(self.person_group)
 
@@ -2815,6 +3467,9 @@ class MainScreen(MDScreen):
 
         self.choose_icon_screen = ChooseIconScreen(self, navigation_drawer)
         self.screen_manager.add_widget(self.choose_icon_screen)
+
+        self.person_editor_screen = PersonEditorScreen(self, navigation_drawer, profile)
+        self.screen_manager.add_widget(self.person_editor_screen)
 
         self.update_groups_count()
 

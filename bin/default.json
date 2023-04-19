@@ -10,7 +10,34 @@
             "Ещё одна новая группа",
             [
                 {
-                    "properties": []
+                    "properties": [
+                        [
+                            "Основные",
+                            [
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "remove",
+                                    "name": "Имя персонажа",
+                                    "value": "Имя"
+                                },
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "remove",
+                                    "name": "Краткое описание",
+                                    "value": "Описание"
+                                },
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "remove",
+                                    "name": "Теги",
+                                    "value": "#тег"
+                                }
+                            ]
+                        ]
+                    ]
                 }
             ]
         ],
@@ -69,6 +96,19 @@
                     "icon": "border-none-variant",
                     "name": "Число",
                     "value": "0"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "A",
+                            "B",
+                            "C"
+                        ]
+                    },
+                    "icon": "",
+                    "name": "",
+                    "value": "A"
                 }
             ]
         ]
