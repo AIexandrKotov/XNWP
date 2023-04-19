@@ -1,9 +1,8 @@
 from kivy.lang.builder import Builder
 from kivy.uix.label import Label
-
 from kivymd.app import MDApp
 
-kv = '''
+kv = """
 MDScreen:
     MDBoxLayout:
         orientation: "vertical"
@@ -127,7 +126,7 @@ MDScreen:
                     hint_text: "Только центральные"
                     adaptive_height: True
                     text: "True"
-'''
+"""
 
 
 class Main(MDApp):
@@ -135,15 +134,17 @@ class Main(MDApp):
         if self.root.ids.container.cols >= 6:
             return
         self.root.ids.container.cols += 1
+
     def down(self):
         if self.root.ids.container.cols <= 1:
             return
         self.root.ids.container.cols -= 1
-    
+
     def build(self):
         self.theme_cls.theme_style = "Light"
         self.theme_cls.primary_palette = "DeepPurple"
         self.theme_cls.accent_palette = "Purple"
         return Builder.load_string(kv)
+
 
 Main().run()

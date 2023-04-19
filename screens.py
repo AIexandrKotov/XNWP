@@ -4,8 +4,6 @@ import copy
 from random import Random
 from typing import Any, Callable, Optional
 
-from databases import Dataset, get_all_datalists
-from generators import Generators
 from kivy.core.window import Window
 from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -43,8 +41,11 @@ from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.tab import MDTabs, MDTabsBase
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.toolbar import MDTopAppBar
-from logic import Person, Property, XNWPProfile
 from pydantic import BaseModel
+
+from databases import Dataset, get_all_datalists
+from generators import Generators
+from logic import Person, Property, XNWPProfile
 
 # ———————————————————————————————————————————————————————————————————————————
 # ————————————————————————— Globals —————————————————————————

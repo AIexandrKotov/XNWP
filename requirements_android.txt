@@ -12,4 +12,3 @@ flake8-isort
 flake8-pytest-style
 pytest
 pydantic
-python-for-android

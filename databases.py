@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 import os
 
-from logic import XNWPProfile
 from pydantic import BaseModel
+
+from logic import XNWPProfile
 
 
 class Dataset(BaseModel):

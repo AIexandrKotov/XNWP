@@ -1,19 +1,24 @@
 from kivy.lang import Builder
-
-from kivymd.app import MDApp
 from kivy.properties import StringProperty
-from kivymd.uix.floatlayout import MDFloatLayout
-from kivymd.uix.tab import MDTabs, MDTabsBase
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.scrollview import MDScrollView
-from kivymd.uix.list import OneLineAvatarListItem, OneLineIconListItem, IconLeftWidget, TwoLineIconListItem
-from kivymd.uix.list import MDList, OneLineListItem
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDFlatButton
+from kivymd.app import MDApp
 from kivymd.uix.behaviors import TouchBehavior
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.list import (
+    IconLeftWidget,
+    MDList,
+    OneLineAvatarListItem,
+    OneLineIconListItem,
+    OneLineListItem,
+    TwoLineIconListItem,
+)
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.tab import MDTabs, MDTabsBase
+from kivymd.uix.textfield import MDTextField
 
-KV = '''
+KV = """
 <DrawerClickableItem@MDNavigationDrawerItem>
 
 
@@ -399,38 +404,48 @@ MDScreen:
             text: "У данного свойства отсутствует генератор. Выберите и настройте генератор, а затем нажмите кнопку в правом верхнем углу"
             valign: "top"
             halign: "center"
-'''
+"""
+
 
 class My2Item(TwoLineIconListItem, TouchBehavior):
     pass
 
+
 class CodeGeneratorTab(MDFloatLayout, MDTabsBase):
-    '''Class implementing content for a tab.'''
+    """Class implementing content for a tab."""
+
 
 class NoGeneratorTab(MDFloatLayout, MDTabsBase):
-    '''Class implementing content for a tab.'''
+    """Class implementing content for a tab."""
+
 
 class DigitGeneratorTab(MDFloatLayout, MDTabsBase):
-    '''Class implementing content for a tab.'''
+    """Class implementing content for a tab."""
+
 
 class ChooseGeneratorTab(MDFloatLayout, MDTabsBase):
-    '''Class implementing content for a tab.'''
+    """Class implementing content for a tab."""
+
 
 class DatabaseChooseGeneratorTab(MDFloatLayout, MDTabsBase):
-    '''Class implementing content for a tab.'''
+    """Class implementing content for a tab."""
+
 
 class DatabaseRanameGeneratorTab(MDFloatLayout, MDTabsBase):
-    '''Class implementing content for a tab.'''
+    """Class implementing content for a tab."""
+
 
 class RanameGeneratorTab(MDFloatLayout, MDTabsBase):
-    '''Class implementing content for a tab.'''
+    """Class implementing content for a tab."""
+
 
 class DialogOneLineIconItem(OneLineIconListItem):
     divider = None
+
     def __init__(self, text, icon, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.text = text
-        self.add_widget(IconLeftWidget(icon = icon))
+        self.add_widget(IconLeftWidget(icon=icon))
 
 
 class Example(MDApp):
@@ -444,7 +459,7 @@ class Example(MDApp):
         self.theme_cls.primary_palette = "DeepPurple"
         self.theme_cls.accent_palette = "Purple"
         return Builder.load_string(KV)
-    
+
     def delete_property_dialog(self):
         if not self.delete_dialog:
             self.delete_dialog = MDDialog(
@@ -463,35 +478,47 @@ class Example(MDApp):
                 ],
             )
         self.delete_dialog.open()
-    
+
     def edit_person_dialog(self):
         if not self.edit_person:
             self.edit_person = MDDialog(
                 title="Редактировать персонажа",
                 type="simple",
                 items=[
-                    DialogOneLineIconItem(text="Переместить выше", icon="arrow-collapse-up"),
-                    DialogOneLineIconItem(text="Переместить ниже", icon="arrow-collapse-down"),
-                    DialogOneLineIconItem(text="Копировать в буфер", icon="content-copy"),
-                    DialogOneLineIconItem(text="Вырезать персонажа", icon="content-cut"),
-                    DialogOneLineIconItem(text="Удалить персонажа", icon="account-remove")
-                ]
+                    DialogOneLineIconItem(
+                        text="Переместить выше", icon="arrow-collapse-up"
+                    ),
+                    DialogOneLineIconItem(
+                        text="Переместить ниже", icon="arrow-collapse-down"
+                    ),
+                    DialogOneLineIconItem(
+                        text="Копировать в буфер", icon="content-copy"
+                    ),
+                    DialogOneLineIconItem(
+                        text="Вырезать персонажа", icon="content-cut"
+                    ),
+                    DialogOneLineIconItem(
+                        text="Удалить персонажа", icon="account-remove"
+                    ),
+                ],
             )
         self.edit_person.open()
-    
+
     def edit_property_group_dialog(self):
         if not self.edit_group_dialog:
             self.edit_group_dialog = MDDialog(
                 title="Редактировать группу",
                 type="simple",
                 items=[
-                    DialogOneLineIconItem(text="Добавить свойство", icon="plus-circle-outline"),
+                    DialogOneLineIconItem(
+                        text="Добавить свойство", icon="plus-circle-outline"
+                    ),
                     DialogOneLineIconItem(text="Создать свойство", icon="plus"),
-                    DialogOneLineIconItem(text="Удалить группу свойств", icon="delete")
-                ]
+                    DialogOneLineIconItem(text="Удалить группу свойств", icon="delete"),
+                ],
             )
         self.edit_group_dialog.open()
-    
+
     def make_add_group_dialog(self):
         if not self.add_group_dialog:
             self.add_group_dialog = MDDialog(

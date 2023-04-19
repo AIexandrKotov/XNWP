@@ -1,9 +1,7 @@
 from kivy.lang import Builder
-
 from kivymd.app import MDApp
 
-
-KV = '''
+KV = """
 MDScreen:
     MDScrollView:
         MDList:
@@ -39,7 +37,7 @@ MDScreen:
                     font_size: 20
                     pos_hint: { "center_x": 0, "center_y": 0.5 }
     
-'''
+"""
 
 
 class Test(MDApp):

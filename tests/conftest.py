@@ -1,4 +1,5 @@
 import pytest
+
 from logic import Note, Person, Property, XNWPProfile
 
 

@@ -1,13 +1,12 @@
 import os
 
 from kivy.lang import Builder
-
+from kivymd import images_path
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
-from kivymd import images_path
 
-KV = '''
+KV = """
 <Content1>
     adaptive_height: True
 
@@ -39,14 +38,15 @@ MDBoxLayout:
             id: box
             cols: 1
             adaptive_height: True
-'''
+"""
 
 
 class Content1(MDBoxLayout):
-    '''Custom content.'''
-class Content2(MDBoxLayout):
-    '''Custom content.'''
+    """Custom content."""
 
+
+class Content2(MDBoxLayout):
+    """Custom content."""
 
 
 class Test(MDApp):
@@ -60,17 +60,13 @@ class Test(MDApp):
         self.root.ids.box.add_widget(
             MDExpansionPanel(
                 content=Content1(),
-                panel_cls=MDExpansionPanelOneLine(
-                    text="Главные герои"
-                )
+                panel_cls=MDExpansionPanelOneLine(text="Главные герои"),
             )
         )
         self.root.ids.box.add_widget(
             MDExpansionPanel(
                 content=Content2(),
-                panel_cls=MDExpansionPanelOneLine(
-                    text="Второстепенные персонажи"
-                )
+                panel_cls=MDExpansionPanelOneLine(text="Второстепенные персонажи"),
             )
         )
 
