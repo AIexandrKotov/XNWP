@@ -133,3 +133,5 @@ dmypy.json
 docs/*
 /test.json
 *.apk
+
+!buildozer.spec

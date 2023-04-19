@@ -135,11 +135,20 @@ def load() -> None:
     global user_profiles
 
     if platform == "android":
-        pass
+        user_dbfiles = Database(files=[])
+        default_dbfiles = Database.load(os.path.join("bin", "defaultdb"))
+        if os.path.exists(os.path.join("bin", "profiles")):
+            user_profiles = load_profiles(os.path.join("bin", "profiles"))
+        else:
+            user_profiles = {
+                "last.json": XNWPProfile(
+                    notes=[], persons=[], sample_persons=[], sample_properties=[]
+                )
+            }
         # from android.storage import primary_external_storage_path
 
         # эту часть кода получится написать только на линуксе. увы
-    elif platform == "win":
+    elif platform == "win" or platform == "linux":
         default_dbfiles = Database.load(os.path.join("bin", "defaultdb"))
         user_dbfiles = Database.load(os.path.join("bin", "userdb"))
         if os.path.exists(os.path.join("bin", "profiles")):
