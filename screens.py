@@ -340,8 +340,8 @@ class PersonPropertyElement(TwoLineIconListItem, TouchBehavior):
 
     def update(self, pproperty: Property) -> None:
         self.pproperty = pproperty
-        self.text = PropertyElement.get_text(self.pproperty)
-        self.secondary_text = PropertyElement.get_sec_text(self.pproperty)
+        self.text = PropertyElement.get_sec_text(self.pproperty)
+        self.secondary_text = PropertyElement.get_text(self.pproperty)
         self.icon_widget.icon = PropertyElement.get_prop_icon(self.pproperty)
 
     def on_release(self) -> None:
@@ -1914,6 +1914,9 @@ class ChooseSamplePropertyScreen(MDScreen):
         top_bar.left_action_items = [
             ["menu", lambda _: self.nav_drawer.set_state("open")]
         ]
+        top_bar.right_action_items = [
+            ["autorenew", lambda _: self.update_list()]
+        ]
 
         scroll_view = MDScrollView()
         self.box = MDGridLayout()
@@ -1932,6 +1935,9 @@ class ChooseSamplePropertyScreen(MDScreen):
 
     def update(self, is_in_person_editor: bool) -> ChooseSamplePropertyScreen:
         self.is_in_person_editor = is_in_person_editor
+        return self
+    
+    def update_list(self) -> None:
         self.box.clear_widgets()
         for group in self.profile.sample_properties:
             self.box.add_widget(
@@ -1940,7 +1946,6 @@ class ChooseSamplePropertyScreen(MDScreen):
                     panel_cls=MDExpansionPanelOneLine(text=group[0]),
                 )
             )
-        return self
 
     def choose_property(self, pproperty: Property) -> None:
         if self.is_in_person_editor:
@@ -2023,7 +2028,7 @@ class EditPropertyDialog(MDDialog):
     def copy_property(self) -> None:
         if self.pproperty is None:
             return
-        self.properties_screen.cut_property(self.pproperty)
+        self.properties_screen.copy_property(self.pproperty)
         self.dismiss()
 
     def cut_property(self) -> None:
@@ -2656,6 +2661,9 @@ class ChooseSamplePersonScreen(MDScreen):
         top_bar.left_action_items = [
             ["menu", lambda _: self.nav_drawer.set_state("open")]
         ]
+        top_bar.right_action_items = [
+            ["autorenew", lambda _: self.update()]
+        ]
 
         scroll_view = MDScrollView()
         self.box = MDGridLayout()
@@ -2920,7 +2928,7 @@ class PersonsListScreen(MDScreen):
     def add_sample_person(self) -> None:
         if len(self.profile.sample_persons) == 0:
             return
-        self.main_screen.choose_sample_person_screen.update()
+        # self.main_screen.choose_sample_person_screen.update()
         self.main_screen.screen_manager.current = "choose_sample_person"
 
     def get_element_of_person(self, person: Person) -> PersonElement:

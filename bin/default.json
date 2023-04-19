@@ -7,52 +7,7 @@
     ],
     "persons": [
         [
-            "Ещё одна новая группа",
-            [
-                {
-                    "properties": [
-                        [
-                            "Основные",
-                            [
-                                {
-                                    "generator": "",
-                                    "generator_arguments": {},
-                                    "icon": "remove",
-                                    "name": "Имя персонажа",
-                                    "value": "Имя"
-                                },
-                                {
-                                    "generator": "",
-                                    "generator_arguments": {},
-                                    "icon": "remove",
-                                    "name": "Краткое описание",
-                                    "value": "Описание"
-                                },
-                                {
-                                    "generator": "",
-                                    "generator_arguments": {},
-                                    "icon": "remove",
-                                    "name": "Теги",
-                                    "value": "#тег"
-                                }
-                            ]
-                        ],
-                        [
-                            "История",
-                            []
-                        ]
-                    ]
-                }
-            ]
-        ],
-        [
-            "default",
-            []
-        ]
-    ],
-    "sample_persons": [
-        [
-            "Изначальные",
+            "История одного работяги",
             [
                 {
                     "properties": [
@@ -64,16 +19,717 @@
                                     "generator_arguments": {},
                                     "icon": "pencil-outline",
                                     "name": "Имя персонажа",
-                                    "value": "Шаблон человека"
+                                    "value": "Константин Владиславович"
+                                },
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "script-text-outline",
+                                    "name": "Описание",
+                                    "value": "Обычный служащий сельской администрации"
+                                },
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "tag",
+                                    "name": "Теги",
+                                    "value": "#работяга"
                                 }
                             ]
                         ],
                         [
                             "История",
-                            []
+                            [
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "book",
+                                    "name": "Роль в истории",
+                                    "value": "Поможет главному герою когда тот будет подавлен"
+                                }
+                            ]
+                        ],
+                        [
+                            "Отношения",
+                            [
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "account-alert-outline",
+                                    "name": "Дочь",
+                                    "value": "Софья Константиновна"
+                                }
+                            ]
+                        ],
+                        [
+                            "Внешность",
+                            [
+                                {
+                                    "generator": "DigitGenerator",
+                                    "generator_arguments": {
+                                        "lower": 16,
+                                        "upper": 60
+                                    },
+                                    "icon": "numeric",
+                                    "name": "Возраст",
+                                    "value": "59"
+                                },
+                                {
+                                    "generator": "DigitGenerator",
+                                    "generator_arguments": {
+                                        "lower": 140,
+                                        "upper": 200
+                                    },
+                                    "icon": "human-male-height",
+                                    "name": "Рост",
+                                    "value": "193"
+                                },
+                                {
+                                    "generator": "DigitGenerator",
+                                    "generator_arguments": {
+                                        "lower": 50,
+                                        "upper": 80
+                                    },
+                                    "icon": "weight-kilogram",
+                                    "name": "Вес",
+                                    "value": "56"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Карие",
+                                            "Голубые",
+                                            "Зелёные",
+                                            "Янтарные"
+                                        ]
+                                    },
+                                    "icon": "eye",
+                                    "name": "Цвет глаз",
+                                    "value": "Зелёные"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Блонд",
+                                            "Брюнет",
+                                            "Каштановые"
+                                        ]
+                                    },
+                                    "icon": "face-woman",
+                                    "name": "Цвет волос",
+                                    "value": "Брюнет"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Короткая",
+                                            "Каре",
+                                            "Хвост викинга",
+                                            "Лысая"
+                                        ]
+                                    },
+                                    "icon": "ruler",
+                                    "name": "Причёска",
+                                    "value": "Каре"
+                                }
+                            ]
+                        ],
+                        [
+                            "Личность",
+                            [
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Нейтральная",
+                                            "Белая",
+                                            "Светло-серая",
+                                            "Серая",
+                                            "Тёмно-серая",
+                                            "Чёрная"
+                                        ]
+                                    },
+                                    "icon": "yin-yang",
+                                    "name": "Моральная сторона",
+                                    "value": "Светло-серая"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Закон",
+                                            "Нейтральность",
+                                            "Хаос"
+                                        ]
+                                    },
+                                    "icon": "yin-yang",
+                                    "name": "Этическая сторона",
+                                    "value": "Нейтральность"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Альтруизм",
+                                            "Оппортунизм",
+                                            "Эгоизм"
+                                        ]
+                                    },
+                                    "icon": "yin-yang",
+                                    "name": "Эго",
+                                    "value": "Эгоизм"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Идеализм",
+                                            "Апатизм",
+                                            "Цинизм"
+                                        ]
+                                    },
+                                    "icon": "yin-yang",
+                                    "name": "Идейность",
+                                    "value": "Апатизм"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Отсутствует",
+                                            "Активист",
+                                            "Реакционист",
+                                            "Экстремист",
+                                            "Террорист",
+                                            "Выше этого"
+                                        ]
+                                    },
+                                    "icon": "alert-rhombus",
+                                    "name": "Протестность",
+                                    "value": "Отсутствует"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Отсутствует",
+                                            "Низкая",
+                                            "Средняя",
+                                            "Высокая"
+                                        ]
+                                    },
+                                    "icon": "account",
+                                    "name": "Эмпатия",
+                                    "value": "Низкая"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Отсутствует",
+                                            "Низкая",
+                                            "Средняя",
+                                            "Высокая",
+                                            "Гиперактивность"
+                                        ]
+                                    },
+                                    "icon": "account",
+                                    "name": "Эмоциональность",
+                                    "value": "Высокая"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Коммунистические",
+                                            "Консервативные",
+                                            "Социалистические",
+                                            "Умеренные",
+                                            "Либеральные",
+                                            "Монархические"
+                                        ]
+                                    },
+                                    "icon": "flag-variant-outline",
+                                    "name": "Политические взгляды",
+                                    "value": "Монархические"
+                                }
+                            ]
+                        ],
+                        [
+                            "Работа",
+                            [
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "briefcase",
+                                    "name": "Название",
+                                    "value": "Офисный работник в сельской администрации"
+                                },
+                                {
+                                    "generator": "DigitGenerator",
+                                    "generator_arguments": {
+                                        "lower": 10000,
+                                        "upper": 1000000
+                                    },
+                                    "icon": "cash-plus",
+                                    "name": "Зарплата",
+                                    "value": "7000 рублей"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Низкая",
+                                            "Средняя",
+                                            "Высокая"
+                                        ]
+                                    },
+                                    "icon": "briefcase-check-outline",
+                                    "name": "Заинтересованность",
+                                    "value": "Низкая"
+                                }
+                            ]
+                        ],
+                        [
+                            "Имущество",
+                            [
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "motorbike",
+                                    "name": "Велосипед",
+                                    "value": "Старый совесткий"
+                                }
+                            ]
+                        ],
+                        [
+                            "Интересы",
+                            [
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Шитьё",
+                                            "Рисование",
+                                            "Велопрогулки",
+                                            "Танцы",
+                                            "Пение",
+                                            "Игра на гитаре",
+                                            "Фигурное катание",
+                                            "Йога",
+                                            "Горные лыжи",
+                                            "Волейбол",
+                                            "Боевые искусства",
+                                            "Дайвинг",
+                                            "Сёрфинг",
+                                            "Компьютерные игры",
+                                            "Астрономия",
+                                            "Цветоводство",
+                                            "Японская культура"
+                                        ]
+                                    },
+                                    "icon": "briefcase-account-outline",
+                                    "name": "Хобби",
+                                    "value": "Компьютерные игры"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Шитьё",
+                                            "Рисование",
+                                            "Велопрогулки",
+                                            "Танцы",
+                                            "Пение",
+                                            "Игра на гитаре",
+                                            "Фигурное катание",
+                                            "Йога",
+                                            "Горные лыжи",
+                                            "Волейбол",
+                                            "Боевые искусства",
+                                            "Дайвинг",
+                                            "Сёрфинг",
+                                            "Компьютерные игры",
+                                            "Астрономия",
+                                            "Цветоводство",
+                                            "Японская культура"
+                                        ]
+                                    },
+                                    "icon": "briefcase-account-outline",
+                                    "name": "Хобби",
+                                    "value": "Рисование"
+                                }
+                            ]
+                        ],
+                        [
+                            "Привычки",
+                            [
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Трепетная гигиеничность",
+                                            "Закаливание",
+                                            "Правильное питание"
+                                        ]
+                                    },
+                                    "icon": "smoking-off",
+                                    "name": "Полезная привычка",
+                                    "value": "Трепетная гигиеничность"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Курение",
+                                            "Алкоголизм",
+                                            "Обильные мат",
+                                            "Лудомания",
+                                            "Харкание"
+                                        ]
+                                    },
+                                    "icon": "smoking-pipe",
+                                    "name": "Вредная привычка",
+                                    "value": "Алкоголизм"
+                                }
+                            ]
+                        ],
+                        [
+                            "Реакции",
+                            [
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Безразличное",
+                                            "Негативное",
+                                            "Позитивное",
+                                            "Нейтральное",
+                                            "Полное"
+                                        ]
+                                    },
+                                    "icon": "alert-box-outline",
+                                    "name": "Отношение к курящим",
+                                    "value": "Позитивное"
+                                }
+                            ]
+                        ]
+                    ]
+                }
+            ]
+        ]
+    ],
+    "sample_persons": [
+        [
+            "Базовые",
+            [
+                {
+                    "properties": [
+                        [
+                            "Основные",
+                            [
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "pencil-outline",
+                                    "name": "Имя персонажа",
+                                    "value": "Шаблон обычного человека"
+                                },
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "script-text-outline",
+                                    "name": "Краткое описание",
+                                    "value": "Описание"
+                                },
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "tag",
+                                    "name": "Теги",
+                                    "value": "#тег"
+                                }
+                            ]
                         ],
                         [
                             "История",
+                            [
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "book",
+                                    "name": "Роль в истории",
+                                    "value": "Роль в истории"
+                                },
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "book",
+                                    "name": "Предыстория",
+                                    "value": "Причины поступков персонажа"
+                                }
+                            ]
+                        ],
+                        [
+                            "Отношения",
+                            []
+                        ],
+                        [
+                            "Внешность",
+                            [
+                                {
+                                    "generator": "DigitGenerator",
+                                    "generator_arguments": {
+                                        "lower": 16,
+                                        "upper": 60
+                                    },
+                                    "icon": "numeric",
+                                    "name": "Возраст",
+                                    "value": "20"
+                                },
+                                {
+                                    "generator": "DigitGenerator",
+                                    "generator_arguments": {
+                                        "lower": 140,
+                                        "upper": 200
+                                    },
+                                    "icon": "human-male-height",
+                                    "name": "Рост",
+                                    "value": "160"
+                                },
+                                {
+                                    "generator": "DigitGenerator",
+                                    "generator_arguments": {
+                                        "lower": 50,
+                                        "upper": 80
+                                    },
+                                    "icon": "weight-kilogram",
+                                    "name": "Вес",
+                                    "value": "60"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Карие",
+                                            "Голубые",
+                                            "Зелёные",
+                                            "Янтарные"
+                                        ]
+                                    },
+                                    "icon": "eye",
+                                    "name": "Цвет глаз",
+                                    "value": "Карие"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Блонд",
+                                            "Брюнет",
+                                            "Каштановые"
+                                        ]
+                                    },
+                                    "icon": "face-woman",
+                                    "name": "Цвет волос",
+                                    "value": "Каштановые"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Короткая",
+                                            "Каре",
+                                            "Хвост викинга",
+                                            "Лысая"
+                                        ]
+                                    },
+                                    "icon": "ruler",
+                                    "name": "Причёска",
+                                    "value": "Короткая"
+                                }
+                            ]
+                        ],
+                        [
+                            "Личность",
+                            [
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Нейтральная",
+                                            "Белая",
+                                            "Светло-серая",
+                                            "Серая",
+                                            "Тёмно-серая",
+                                            "Чёрная"
+                                        ]
+                                    },
+                                    "icon": "yin-yang",
+                                    "name": "Моральная сторона",
+                                    "value": "Нейтральная"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Закон",
+                                            "Нейтральность",
+                                            "Хаос"
+                                        ]
+                                    },
+                                    "icon": "yin-yang",
+                                    "name": "Этическая сторона",
+                                    "value": "Нейтральность"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Альтруизм",
+                                            "Оппортунизм",
+                                            "Эгоизм"
+                                        ]
+                                    },
+                                    "icon": "yin-yang",
+                                    "name": "Эго",
+                                    "value": "Оппортунизм"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Идеализм",
+                                            "Апатизм",
+                                            "Цинизм"
+                                        ]
+                                    },
+                                    "icon": "yin-yang",
+                                    "name": "Идейность",
+                                    "value": "Апатизм"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Отсутствует",
+                                            "Активист",
+                                            "Реакционист",
+                                            "Экстремист",
+                                            "Террорист",
+                                            "Выше этого"
+                                        ]
+                                    },
+                                    "icon": "alert-rhombus",
+                                    "name": "Протестность",
+                                    "value": "Отсутствует"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Отсутствует",
+                                            "Низкая",
+                                            "Средняя",
+                                            "Высокая"
+                                        ]
+                                    },
+                                    "icon": "account",
+                                    "name": "Эмпатия",
+                                    "value": "Средняя"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Отсутствует",
+                                            "Низкая",
+                                            "Средняя",
+                                            "Высокая",
+                                            "Гиперактивность"
+                                        ]
+                                    },
+                                    "icon": "account",
+                                    "name": "Эмоциональность",
+                                    "value": "Средняя"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Коммунистические",
+                                            "Консервативные",
+                                            "Социалистические",
+                                            "Умеренные",
+                                            "Либеральные",
+                                            "Монархические"
+                                        ]
+                                    },
+                                    "icon": "flag-variant-outline",
+                                    "name": "Политические взгляды",
+                                    "value": "Умеренные"
+                                }
+                            ]
+                        ],
+                        [
+                            "Работа",
+                            [
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "briefcase",
+                                    "name": "Название",
+                                    "value": "Грузчик"
+                                },
+                                {
+                                    "generator": "DigitGenerator",
+                                    "generator_arguments": {
+                                        "lower": 10000,
+                                        "upper": 1000000
+                                    },
+                                    "icon": "cash-plus",
+                                    "name": "Зарплата",
+                                    "value": "164242 рубля"
+                                },
+                                {
+                                    "generator": "ChooseGenerator",
+                                    "generator_arguments": {
+                                        "chooses": [
+                                            "Низкая",
+                                            "Средняя",
+                                            "Высокая"
+                                        ]
+                                    },
+                                    "icon": "briefcase-check-outline",
+                                    "name": "Заинтересованность",
+                                    "value": "Средняя"
+                                },
+                                {
+                                    "generator": "",
+                                    "generator_arguments": {},
+                                    "icon": "circle-expand",
+                                    "name": "Опыт",
+                                    "value": "Опишите здесь опыт персонажа"
+                                }
+                            ]
+                        ],
+                        [
+                            "Имущество",
+                            []
+                        ],
+                        [
+                            "Интересы",
+                            []
+                        ],
+                        [
+                            "Привычки",
+                            []
+                        ],
+                        [
+                            "Реакции",
                             []
                         ]
                     ]
@@ -95,36 +751,568 @@
                 {
                     "generator": "",
                     "generator_arguments": {},
-                    "icon": "remove",
+                    "icon": "script-text-outline",
                     "name": "Краткое описание",
                     "value": "Описание"
                 },
                 {
                     "generator": "",
                     "generator_arguments": {},
-                    "icon": "remove",
+                    "icon": "tag",
                     "name": "Теги",
                     "value": "#тег"
+                }
+            ]
+        ],
+        [
+            "История",
+            [
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "book",
+                    "name": "Роль в истории",
+                    "value": "Роль в истории"
                 },
                 {
                     "generator": "",
                     "generator_arguments": {},
-                    "icon": "border-none-variant",
-                    "name": "Число",
-                    "value": "0"
+                    "icon": "book",
+                    "name": "Ранняя жизнь",
+                    "value": "Описание ранней жизни"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "book",
+                    "name": "Предыстория",
+                    "value": "Причины поступков персонажа"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "book-alert-outline",
+                    "name": "Важный момент",
+                    "value": "Напишите здесь этот момент"
+                }
+            ]
+        ],
+        [
+            "Отношения",
+            [
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Мать",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Отец",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Бабушка",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Дедушка",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Дядя",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Тётя",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Брат",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Сестра",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Сын",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Дочь",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Племянник",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Племянница",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Внук",
+                    "value": "Имя родственника"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "account-alert-outline",
+                    "name": "Внучка",
+                    "value": "Имя родственника"
+                }
+            ]
+        ],
+        [
+            "Внешность",
+            [
+                {
+                    "generator": "DigitGenerator",
+                    "generator_arguments": {
+                        "lower": 16,
+                        "upper": 60
+                    },
+                    "icon": "numeric",
+                    "name": "Возраст",
+                    "value": "20"
+                },
+                {
+                    "generator": "DigitGenerator",
+                    "generator_arguments": {
+                        "lower": 140,
+                        "upper": 200
+                    },
+                    "icon": "human-male-height",
+                    "name": "Рост",
+                    "value": "160"
+                },
+                {
+                    "generator": "DigitGenerator",
+                    "generator_arguments": {
+                        "lower": 50,
+                        "upper": 80
+                    },
+                    "icon": "weight-kilogram",
+                    "name": "Вес",
+                    "value": "60"
                 },
                 {
                     "generator": "ChooseGenerator",
                     "generator_arguments": {
                         "chooses": [
-                            "A",
-                            "B",
-                            "C"
+                            "Карие",
+                            "Голубые",
+                            "Зелёные",
+                            "Янтарные"
                         ]
                     },
-                    "icon": "",
-                    "name": "",
-                    "value": "A"
+                    "icon": "eye",
+                    "name": "Цвет глаз",
+                    "value": "Карие"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Блонд",
+                            "Брюнет",
+                            "Каштановые"
+                        ]
+                    },
+                    "icon": "face-woman",
+                    "name": "Цвет волос",
+                    "value": "Каштановые"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Короткая",
+                            "Каре",
+                            "Хвост викинга",
+                            "Лысая"
+                        ]
+                    },
+                    "icon": "ruler",
+                    "name": "Причёска",
+                    "value": "Короткая"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "alert-circle-outline",
+                    "name": "Особенность",
+                    "value": "Напишите здесь особенность персонажа"
+                }
+            ]
+        ],
+        [
+            "Личность",
+            [
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Нейтральная",
+                            "Белая",
+                            "Светло-серая",
+                            "Серая",
+                            "Тёмно-серая",
+                            "Чёрная"
+                        ]
+                    },
+                    "icon": "yin-yang",
+                    "name": "Моральная сторона",
+                    "value": "Нейтральная"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Закон",
+                            "Нейтральность",
+                            "Хаос"
+                        ]
+                    },
+                    "icon": "yin-yang",
+                    "name": "Этическая сторона",
+                    "value": "Нейтральность"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Альтруизм",
+                            "Оппортунизм",
+                            "Эгоизм"
+                        ]
+                    },
+                    "icon": "yin-yang",
+                    "name": "Эго",
+                    "value": "Оппортунизм"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Идеализм",
+                            "Апатизм",
+                            "Цинизм"
+                        ]
+                    },
+                    "icon": "yin-yang",
+                    "name": "Идейность",
+                    "value": "Апатизм"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Отсутствует",
+                            "Активист",
+                            "Реакционист",
+                            "Экстремист",
+                            "Террорист",
+                            "Выше этого"
+                        ]
+                    },
+                    "icon": "alert-rhombus",
+                    "name": "Протестность",
+                    "value": "Отсутствует"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Отсутствует",
+                            "Низкая",
+                            "Средняя",
+                            "Высокая"
+                        ]
+                    },
+                    "icon": "account",
+                    "name": "Эмпатия",
+                    "value": "Средняя"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Отсутствует",
+                            "Низкая",
+                            "Средняя",
+                            "Высокая",
+                            "Гиперактивность"
+                        ]
+                    },
+                    "icon": "account",
+                    "name": "Эмоциональность",
+                    "value": "Средняя"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Коммунистические",
+                            "Консервативные",
+                            "Социалистические",
+                            "Умеренные",
+                            "Либеральные",
+                            "Монархические"
+                        ]
+                    },
+                    "icon": "flag-variant-outline",
+                    "name": "Политические взгляды",
+                    "value": "Умеренные"
+                }
+            ]
+        ],
+        [
+            "Работа",
+            [
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "briefcase",
+                    "name": "Название",
+                    "value": "Грузчик"
+                },
+                {
+                    "generator": "DigitGenerator",
+                    "generator_arguments": {
+                        "lower": 10000,
+                        "upper": 1000000
+                    },
+                    "icon": "cash-plus",
+                    "name": "Зарплата",
+                    "value": "164242 рубля"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Низкая",
+                            "Средняя",
+                            "Высокая"
+                        ]
+                    },
+                    "icon": "briefcase-check-outline",
+                    "name": "Заинтересованность",
+                    "value": "Средняя"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "circle-expand",
+                    "name": "Опыт",
+                    "value": "Опишите здесь опыт персонажа"
+                }
+            ]
+        ],
+        [
+            "Имущество",
+            [
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "greenhouse",
+                    "name": "Недвижимость",
+                    "value": "Квартира в Москве"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "car",
+                    "name": "Автомобиль",
+                    "value": "ВАЗ-2101"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "motorbike",
+                    "name": "Велосипед",
+                    "value": "Stels M228"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "guitar-acoustic",
+                    "name": "Музыкальный инструмент",
+                    "value": "Гитара IBANEZ"
+                },
+                {
+                    "generator": "",
+                    "generator_arguments": {},
+                    "icon": "cash-100",
+                    "name": "Деньги",
+                    "value": "5000 рублей"
+                }
+            ]
+        ],
+        [
+            "Интересы",
+            [
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Шитьё",
+                            "Рисование",
+                            "Велопрогулки",
+                            "Танцы",
+                            "Пение",
+                            "Игра на гитаре",
+                            "Фигурное катание",
+                            "Йога",
+                            "Горные лыжи",
+                            "Волейбол",
+                            "Боевые искусства",
+                            "Дайвинг",
+                            "Сёрфинг",
+                            "Компьютерные игры",
+                            "Астрономия",
+                            "Цветоводство",
+                            "Японская культура"
+                        ]
+                    },
+                    "icon": "briefcase-account-outline",
+                    "name": "Хобби",
+                    "value": "Боевые искусства"
+                }
+            ]
+        ],
+        [
+            "Привычки",
+            [
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Курение",
+                            "Алкоголизм",
+                            "Обильные мат",
+                            "Лудомания",
+                            "Харкание"
+                        ]
+                    },
+                    "icon": "smoking-pipe",
+                    "name": "Вредная привычка",
+                    "value": "Алкоголизм"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Трепетная гигиеничность",
+                            "Закаливание",
+                            "Правильное питание"
+                        ]
+                    },
+                    "icon": "smoking-off",
+                    "name": "Полезная привычка",
+                    "value": "Трепетная гигиеничность"
+                }
+            ]
+        ],
+        [
+            "Реакции",
+            [
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Безразличное",
+                            "Негативное",
+                            "Позитивное",
+                            "Нейтральное",
+                            "Полное"
+                        ]
+                    },
+                    "icon": "alert-box-outline",
+                    "name": "Отношение к курящим",
+                    "value": "Безразличное"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Безразличное",
+                            "Негативное",
+                            "Позитивное",
+                            "Нейтральное",
+                            "Полное"
+                        ]
+                    },
+                    "icon": "alert-box-outline",
+                    "name": "Отношение к алкоголикам",
+                    "value": "Безразличное"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Безразличное",
+                            "Негативное",
+                            "Позитивное",
+                            "Нейтральное",
+                            "Полное"
+                        ]
+                    },
+                    "icon": "alert-box-outline",
+                    "name": "Отношение к лудоманам",
+                    "value": "Безразличное"
+                },
+                {
+                    "generator": "ChooseGenerator",
+                    "generator_arguments": {
+                        "chooses": [
+                            "Безразличное",
+                            "Негативное",
+                            "Позитивное",
+                            "Нейтральное",
+                            "Полное"
+                        ]
+                    },
+                    "icon": "alert-box-outline",
+                    "name": "Отношение к коррупционерам",
+                    "value": "Безразличное"
                 }
             ]
         ]
