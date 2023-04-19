@@ -225,9 +225,9 @@ class Generators:
         db_raname_generator,
     ]
 
-    __named_generators: dict[str, AbstractGenerator] = dict(
-        map(lambda generator: (str(generator), generator), __generators)
-    )
+    __named_generators: dict[str, AbstractGenerator] = {
+        str(generator): generator for generator in __generators
+    }
 
     @staticmethod
     def generator_exists(generator_name: str) -> bool:

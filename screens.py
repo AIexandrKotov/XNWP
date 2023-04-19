@@ -1914,9 +1914,7 @@ class ChooseSamplePropertyScreen(MDScreen):
         top_bar.left_action_items = [
             ["menu", lambda _: self.nav_drawer.set_state("open")]
         ]
-        top_bar.right_action_items = [
-            ["autorenew", lambda _: self.update_list()]
-        ]
+        top_bar.right_action_items = [["autorenew", lambda _: self.update_list()]]
 
         scroll_view = MDScrollView()
         self.box = MDGridLayout()
@@ -1936,7 +1934,7 @@ class ChooseSamplePropertyScreen(MDScreen):
     def update(self, is_in_person_editor: bool) -> ChooseSamplePropertyScreen:
         self.is_in_person_editor = is_in_person_editor
         return self
-    
+
     def update_list(self) -> None:
         self.box.clear_widgets()
         for group in self.profile.sample_properties:
@@ -2661,9 +2659,7 @@ class ChooseSamplePersonScreen(MDScreen):
         top_bar.left_action_items = [
             ["menu", lambda _: self.nav_drawer.set_state("open")]
         ]
-        top_bar.right_action_items = [
-            ["autorenew", lambda _: self.update()]
-        ]
+        top_bar.right_action_items = [["autorenew", lambda _: self.update()]]
 
         scroll_view = MDScrollView()
         self.box = MDGridLayout()
