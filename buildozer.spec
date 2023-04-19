@@ -19,10 +19,10 @@ source.include_exts = py,png,jpg,kv,atlas,json
 #source.include_patterns = assets/*,images/*.png
 
 # (list) Source files to exclude (let empty to not exclude anything)
-#source.exclude_exts = spec
+source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-#source.exclude_dirs = tests, venv, kivys
+source.exclude_dirs = tests,venv,kivys
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
@@ -47,7 +47,7 @@ requirements = python3,kivy,kivymd,pydantic
 #presplash.filename = %(source.dir)s/data/presplash.png
 
 # (str) Icon of the application
-#icon.filename = %(source.dir)s/icon.png
+icon.filename = %(source.dir)s/logo.png
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
 orientation = portrait
@@ -93,7 +93,7 @@ fullscreen = 0
 #icon.adaptive_background.filename = %(source.dir)s/data/icon_bg.png
 
 # (list) Permissions
-#android.permissions = INTERNET, STORAGE_INTERNAL
+#android.permissions = INTERNET
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host

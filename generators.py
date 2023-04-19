@@ -225,11 +225,9 @@ class Generators:
         db_raname_generator,
     ]
 
-    @staticmethod
-    def __mapper(generator: AbstractGenerator) -> tuple[str, AbstractGenerator]:
-        return (str(generator), generator)
-
-    __named_generators: dict[str, AbstractGenerator] = dict(map(__mapper, __generators))
+    __named_generators: dict[str, AbstractGenerator] = dict(
+        map(lambda generator: (str(generator), generator), __generators)
+    )
 
     @staticmethod
     def generator_exists(generator_name: str) -> bool:

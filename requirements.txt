@@ -2,6 +2,7 @@ kivy
 kivymd
 flake8
 mypy
+black
 flake8-blind-except
 flake8-builtins
 flake8-comprehensions
